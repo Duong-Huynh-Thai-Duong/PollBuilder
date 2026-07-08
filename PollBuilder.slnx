@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="PollBuilder.Application/PollBuilder.Application.csproj" />
+  <Project Path="PollBuilder.Domain/PollBuilder.Domain.csproj" />
+  <Project Path="PollBuilder.Infrastructure/PollBuilder.Infrastructure.csproj" />
+  <Project Path="PollBuilder.MVC/PollBuilder.Web.csproj" />
+</Solution>
