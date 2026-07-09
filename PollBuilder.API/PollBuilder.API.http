@@ -1,0 +1,6 @@
+@PollBuilder.API_HostAddress = http://localhost:5208
+
+GET {{PollBuilder.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
