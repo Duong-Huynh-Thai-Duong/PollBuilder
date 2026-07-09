@@ -1,16 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace PollBuilder.Domain.Entities
+﻿namespace PollBuilder.Domain.Entities
 {
     public class Vote
     {
-        public string VoterFingerprint { get; set; } = string.Empty;
+        public Guid Id { get; set; } = Guid.NewGuid();
 
-        public DateTime VotedAt { get; set; } = DateTime.UtcNow;
+        // Foreign Key to Question (Always required)
+        public Guid QuestionId { get; set; }
+        public Question? Question { get; set; }
 
-        public Guid PollOptionId { get; set; }
-        public PollOption? PollOption { get; set; }
+        // Foreign Key to Option (Nullable for OpenText questions)
+        public Guid? OptionId { get; set; }
+        public Option? Option { get; set; }
+
+        // Identifiers
+        public string? UserId { get; set; } // If a logged-in creator votes
+        public string VoterToken { get; set; } = string.Empty; // Anonymous session ID
+
+        // For Merit Requirement: Open text responses
+        public string? OpinionText { get; set; }
     }
 }
