@@ -38,13 +38,22 @@ namespace PollBuilder.API.Controllers
 
         /// <summary>
         /// GET: api/polls/{code}
-        /// Placeholder for fetching a poll by its short code.
+        /// Fetches a poll and its questions/options by its 5-character short code.
         /// </summary>
         [HttpGet("{code}")]
         public async Task<IActionResult> GetPoll(string code)
         {
-            // We will implement the fetching logic here next!
-            return Ok($"This will eventually return the data for poll: {code}");
+            // Call the service to run the EF Core .Include() query
+            var poll = await _pollService.GetPollByCodeAsync(code);
+
+            // If the service returns null, the code doesn't exist
+            if (poll == null)
+            {
+                return NotFound(new { Message = $"No poll found with code: {code}" });
+            }
+
+            // If found, return a 200 OK status with the perfectly formatted JSON hierarchy
+            return Ok(poll);
         }
     }
 }

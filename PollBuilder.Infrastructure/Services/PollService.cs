@@ -74,6 +74,50 @@ namespace PollBuilder.Infrastructure.Services
             return shortCode;
         }
 
+        public async Task<PollResponseDTO?> GetPollByCodeAsync(string code)
+        {
+            // 1. The EF Core Query
+            var poll = await _context.Polls
+                .Include(p => p.Questions)           // Join the Questions table
+                    .ThenInclude(q => q.Options)     // Join the Options table attached to those Questions
+                .FirstOrDefaultAsync(p => p.Code == code);
+
+            // 2. Failsafe: Did we find it?
+            if (poll == null)
+            {
+                return null;
+            }
+
+            // 3. Map the raw database entities into our safe Response DTOs
+            var response = new PollResponseDTO
+            {
+                Code = poll.Code,
+                Title = poll.Title,
+                Description = poll.Description,
+                LaunchDate = poll.LaunchDate,
+                Status = poll.Status.ToString(), // Converts the Enum (0, 1) into readable text ("Created", "Active")
+
+                // Map Questions and sort them by Position
+                Questions = poll.Questions.OrderBy(q => q.Position).Select(q => new QuestionResponseDTO
+                {
+                    Id = q.Id,
+                    Text = q.Text,
+                    Type = (int)q.Type,
+                    Position = q.Position,
+
+                    // Map Options and sort them by Position
+                    Options = q.Options.OrderBy(o => o.Position).Select(o => new OptionResponseDTO
+                    {
+                        Id = o.Id,
+                        Text = o.Text,
+                        Position = o.Position
+                    }).ToList()
+                }).ToList()
+            };
+
+            return response;
+        }
+
         // Helper method to generate the random 5-character string
         private string GenerateShortCode()
         {

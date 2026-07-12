@@ -2,7 +2,7 @@
 {
     public class QuestionResponseDTO
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public string Text { get; set; } = string.Empty;
         public int Type { get; set; }
         public int Position { get; set; }
