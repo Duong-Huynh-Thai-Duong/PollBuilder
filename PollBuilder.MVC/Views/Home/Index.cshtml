@@ -1,8 +1,48 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Welcome";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="landing-container">
+
+    <div class="hero-section">
+        <h1 class="hero-title">Build engaging polls in seconds.</h1>
+        <p class="hero-subtitle">
+            The cleanest, fastest way to capture real-time feedback. Create instant polls or comprehensive surveys with a beautiful, distraction-free workspace.
+        </p>
+
+        <div class="hero-actions">
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <a asp-controller="Dashboard" asp-action="Index" class="submit-btn hero-btn">
+                    Go to My Workspace 🚀
+                </a>
+            }
+            else
+            {
+                <a asp-area="Identity" asp-page="/Account/Register" class="submit-btn hero-btn">
+                    Create Poll ⚡
+                </a>
+                <a asp-area="Identity" asp-page="/Account/Register" class="nav-btn-ghost hero-btn">
+                    Create Survey 📝
+                </a>
+            }
+        </div>
+    </div>
+
+    <div class="feature-grid">
+        <div class="dash-card feature-card">
+            <div class="feature-icon">⚡</div>
+            <h3 class="card-title">Lightning Fast Polls</h3>
+            <p class="card-meta">Create and share a live polling link in under 10 seconds. Perfect for quick group decisions or team standups.</p>
+        </div>
+
+        <div class="dash-card feature-card">
+            <div class="feature-icon">📝</div>
+            <h3 class="card-title">Padlet-Style Surveys</h3>
+            <p class="card-meta">Organize complex surveys using our intuitive, floating-card canvas. Drag, drop, and design with absolute freedom.</p>
+        </div>
+
+       
+    </div>
+
 </div>

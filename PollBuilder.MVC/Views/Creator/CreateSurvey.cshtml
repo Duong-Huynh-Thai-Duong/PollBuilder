@@ -1,0 +1,42 @@
+﻿@{
+    ViewData["Title"] = "Create Survey";
+}
+
+<div class="padlet-board">
+    <div class="board-header glass-card">
+        <input type="text" class="survey-title-input" placeholder="Name your awesome survey..." value="My First Web Poll">
+        <div class="survey-settings">
+            <label>Expiry Date: <input type="date" class="glass-input"></label>
+            <button class="nav-btn-solid">Save Survey</button>
+        </div>
+    </div>
+
+    <div class="question-grid">
+        <div class="glass-card question-card">
+            <div class="card-drag-handle">⋮⋮</div>
+            <input type="text" class="question-title-input" placeholder="What is your question?" value="Favorite JavaScript Framework?">
+
+            <div class="options-list">
+                <div class="option-item">
+                    <span class="dot"></span> <input type="text" value="React" class="glass-input option-input">
+                </div>
+                <div class="option-item">
+                    <span class="dot"></span> <input type="text" value="Vue" class="glass-input option-input">
+                </div>
+                <button class="add-option-btn">+ Add Option</button>
+            </div>
+        </div>
+
+        <div class="glass-card question-card">
+            <div class="card-drag-handle">⋮⋮</div>
+            <input type="text" class="question-title-input" placeholder="What is your question?" value="Any additional feedback?">
+            <div class="options-list">
+                <p class="text-muted">Users will type their text answer here.</p>
+            </div>
+        </div>
+    </div>
+
+    <button class="fab-btn" title="Add New Question">
+        +
+    </button>
+</div>

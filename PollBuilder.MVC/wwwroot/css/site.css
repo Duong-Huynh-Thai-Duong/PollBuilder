@@ -1,31 +1,656 @@
-html {
-  font-size: 14px;
+/* --- 1. CORE VARIABLES (Clean Padlet Theme) --- */
+:root {
+    --bg-gradient: #ffffff;
+    /* Your true violet */
+    --primary-color: #7c3aed;
+    --primary-hover: #6d28d9;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    /* A more distinct light grey for the card */
+    --glass-bg: #f1f5f9;
+    --glass-border: #cbd5e1;
 }
 
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
-}
-
+/* --- 2. GLOBAL RESET & BODY --- */
 body {
-  margin-bottom: 60px;
+    background: var(--bg-gradient); /* Removed the !important overrides */
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
+
+/* --- 2.1 GLOBAL RESET --- */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    /* Apply Rubik globally for that super clean, readable Padlet look */
+    font-family: 'Rubik', sans-serif;
 }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
+/* --- 2.2 TYPOGRAPHY OVERRIDES --- */
+h1, h2, h3, h4, h5, h6,
+.nav-brand, 
+.survey-title-input {
+    /* Keeping the chunky headers (Change to 'Rubik' if you want it cleaner!) */
+    font-family: 'Alfa Slab One', serif;
+    font-weight: 500;
+    letter-spacing: 1.5px;
 }
+
+/* Your exact Geist Pixel snippet, applied to buttons and form inputs */
+button, input, textarea, .nav-btn-solid, .nav-btn-ghost, .submit-btn, .option-text {
+    font-family: "Rubik", serif;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-style: normal;
+    font-variation-settings: "ELSH" 0;
+}
+
+/* --- TOP NAVIGATION BAR --- */
+.main-header {
+    background: var(--bg-gradient);
+    border-bottom: 1px solid var(--glass-border);
+    padding: 1.2rem 0;
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    justify-content: space-between; /* Pushes logo left, auth right */
+    align-items: center;
+}
+
+.nav-right {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.nav-link-ghost {
+    color: var(--text-main);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: color 0.2s ease;
+}
+
+    .nav-link-ghost:hover {
+        color: var(--primary-color);
+    }
+
+.nav-btn-small {
+    padding: 0.6rem 1.5rem;
+    font-size: 0.95rem;
+    border-radius: 8px;
+    text-decoration: none;
+    display: inline-block;
+    /* The !important tags force the gray color to win */
+    background-color: var(--text-muted) !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+    border: none;
+}
+
+    .nav-btn-small:hover {
+        background-color: var(--text-main) !important;
+        color: #ffffff !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15) !important;
+    }
+
+    /* --- 3. GLASSMORPHISM NAVBAR --- */
+    .glass-nav {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--glass-border);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        padding: 1rem 0;
+    }
+
+    .nav-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+.nav-brand {
+    font-size: 1.6rem; 
+    font-weight: 600;
+    color: var(--text-main); /* Changed from primary-color to dark gray */
+    text-decoration: none;
+    letter-spacing: 0.7px;
+}
+    /* --- 4. CONFIDENT BUTTONS --- */
+    .nav-links {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .nav-btn-ghost, .nav-btn-solid {
+        text-decoration: none;
+        font-weight: 600;
+        padding: 0.5rem 1.2rem;
+        border-radius: 50px; /* Cute pill shape */
+        transition: all 0.3s ease;
+    }
+
+    .nav-btn-ghost {
+        color: var(--text-main);
+        background: transparent;
+    }
+
+        .nav-btn-ghost:hover {
+            color: var(--primary-color);
+        }
+
+    .nav-btn-solid {
+        background: var(--primary-color);
+        color: white;
+        box-shadow: 0 4px 15px rgba(255, 107, 158, 0.3);
+    }
+
+        .nav-btn-solid:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 158, 0.4);
+        }
+    /* --- 5. MAIN CONTENT LAYOUT --- */
+    .main-container {
+        flex: 1;
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 2rem;
+        width: 100%;
+    }
+    /* --- 6. FOOTER --- */
+    footer {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+    /* --- 7. POLL VOTING UI --- */
+    .poll-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 70vh;
+    }
+
+    .glass-card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px; /* Slightly softer corners */
+        padding: 2.5rem;
+        width: 100%;
+        max-width: 600px;
+        /* A very soft, diffuse shadow just like the Padlet screenshot */
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+    }
+
+    .poll-header {
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    /*.live-badge {*/
+        /* A tiny pop of pink looks great against the Brazil green/yellow! */
+        /*background: #ff4785;
+        color: white;
+        padding: 0.2rem 0.8rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }*/
+
+    .poll-header h2 {
+        margin: 1rem 0 0.5rem 0;
+        font-size: 1.8rem;
+        color: var(--text-main);
+    }
+
+    .poll-header p {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+.poll-option {
+    display: block;
+    /* Pure white so it pops beautifully against the grey card */
+    background: #ffffff;
+    border: 1px solid var(--glass-border);
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+    .poll-option:hover {
+        /* Soft violet highlight effect */
+        background: #f5f3ff;
+        border-color: var(--primary-color);
+        color: var(--primary-color); /* Optionally tints the text violet on hover too! */
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(124, 58, 237, 0.1); /* Subtle violet shadow */
+    }
+
+    /* Hide the ugly default browser radio button */
+    .poll-option input[type="radio"] {
+        display: none;
+    }
+
+    /* The Clean Selection Style */
+    .poll-option:has(input:checked) {
+        background: #faf5ff; /* A very soft purple tint */
+        border: 2px solid var(--primary-color);
+        box-shadow: 0 0 0 1px var(--primary-color); /* Crisp, clean outline instead of a blur */
+        color: var(--primary-hover);
+    }
+
+.submit-btn:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    /* Softer shadow for the button */
+    box-shadow: 0 6px 15px rgba(168, 85, 247, 0.25);
+}
+
+    .submit-btn {
+        width: 100%;
+        padding: 1rem;
+        margin-top: 1rem;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+        .submit-btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 80, 179, 0.3);
+        }
+    /* --- 8. PADLET-STYLE CREATOR BOARD --- */
+
+    .padlet-board {
+        width: 100%;
+        padding-bottom: 100px; /* Space for the floating button */
+    }
+    /* Header Styling */
+    .board-header {
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem 2rem;
+    }
+
+    .survey-title-input {
+        font-size: 1.8rem;
+        font-weight: 700;
+        border: none;
+        background: transparent;
+        color: var(--text-main);
+        outline: none;
+        width: 50%;
+    }
+
+    .survey-settings {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .glass-input {
+        background: rgba(255, 255, 255, 0.4);
+        border: 1px solid var(--glass-border);
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        color: var(--text-main);
+        font-family: inherit;
+    }
+    /* Grid Layout for Cards */
+    .question-grid {
+        display: grid;
+        /* This creates the responsive Padlet card layout! */
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 2rem;
+        align-items: start; /* Cards don't stretch to match each other's height */
+    }
+    /* Individual Question Card */
+    .question-card {
+        position: relative;
+        padding: 2rem;
+        transition: transform 0.2s ease;
+    }
+
+        .question-card:hover {
+            transform: translateY(-5px);
+        }
+
+    .card-drag-handle {
+        text-align: center;
+        color: var(--text-muted);
+        cursor: grab;
+        margin-bottom: 1rem;
+        letter-spacing: 2px;
+    }
+
+    .question-title-input {
+        width: 100%;
+        font-size: 1.2rem;
+        font-weight: 600;
+        border: none;
+        background: transparent;
+        border-bottom: 2px dashed var(--glass-border);
+        padding-bottom: 0.5rem;
+        margin-bottom: 1.5rem;
+        color: var(--text-main);
+        outline: none;
+    }
+    /* Options Inside the Card */
+    .options-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+    }
+
+    .option-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .dot {
+        height: 12px;
+        width: 12px;
+        background-color: var(--primary-color);
+        border-radius: 50%;
+    }
+
+    .option-input {
+        flex: 1;
+    }
+
+    .add-option-btn {
+        background: transparent;
+        border: none;
+        color: var(--primary-color);
+        font-weight: 600;
+        text-align: left;
+        margin-top: 0.5rem;
+        cursor: pointer;
+    }
+    /* Floating Action Button (FAB) */
+    .fab-btn {
+        position: fixed;
+        bottom: 40px;
+        right: 40px;
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background-color: var(--primary-color);
+        color: white;
+        font-size: 2.5rem;
+        line-height: 1;
+        border: none;
+        box-shadow: 0 10px 25px rgba(0, 80, 179, 0.4);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+        .fab-btn:hover {
+            transform: scale(1.1) rotate(90deg); /* Satisfying rotation effect */
+            background-color: var(--primary-hover);
+        }
+
+/* --- 10. CREATOR DASHBOARD --- */
+
+.dashboard-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* Sub-Navigation */
+.dashboard-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3rem;
+    border-bottom: 2px solid var(--glass-border);
+    padding-bottom: 1rem;
+}
+
+.nav-links {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+}
+
+    .nav-links a {
+        text-decoration: none;
+        color: var(--text-muted);
+        font-weight: 600;
+        font-size: 1.1rem;
+        padding-bottom: 1.2rem;
+        position: relative;
+        transition: color 0.2s;
+    }
+
+        .nav-links a:hover {
+            color: var(--text-main);
+        }
+
+        .nav-links a.active {
+            color: var(--primary-color);
+        }
+
+            .nav-links a.active::after {
+                content: '';
+                position: absolute;
+                bottom: -18px;
+                left: 0;
+                width: 100%;
+                height: 4px;
+                background-color: var(--primary-color);
+                border-radius: 4px 4px 0 0;
+            }
+
+.user-greeting {
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+/* The Grid */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    padding-bottom: 100px; /* Space for the FAB button */
+}
+
+/* Padlet-Style Dashboard Cards */
+.dash-card {
+    background: #ffffff; /* Pure white so it pops off the page */
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+    .dash-card:hover {
+        border-color: var(--primary-color);
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(124, 58, 237, 0.08); /* Soft violet shadow */
+    }
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.status-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 0.3rem 0.8rem;
+    border-radius: 50px;
+    letter-spacing: 1px;
+}
+
+    .status-badge.live {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-badge.draft {
+        background: #f1f5f9;
+        color: #475569;
+    }
+
+.icon-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.card-title {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.card-meta {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+    flex-grow: 1; /* Pushes actions to the bottom */
+}
+
+.card-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+    .card-actions button {
+        flex: 1;
+        padding: 0.6rem;
+        font-size: 0.9rem;
+        border-radius: 8px;
+    }
+
+/* --- 11. LANDING PAGE --- */
+
+.landing-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 5rem 2rem;
+    text-align: center;
+}
+
+/* Hero Section */
+.hero-section {
+    margin-bottom: 6rem;
+    /* A quick, smooth fade-in animation when the page loads */
+    animation: fadeIn 0.8s ease-out;
+}
+
+.hero-title {
+    font-size: 3.8rem;
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+    line-height: 1.15;
+}
+
+.hero-subtitle {
+    font-size: 1.25rem;
+    color: var(--text-muted);
+    max-width: 750px;
+    margin: 0 auto 2.5rem auto;
+    line-height: 1.6;
+}
+
+.hero-actions {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Tweaking the buttons just for the massive hero section */
+.hero-btn {
+    padding: 1.2rem 2.5rem;
+    font-size: 1.2rem;
+    width: auto;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.hero-login-btn {
+    font-size: 1.1rem;
+    padding: 1.1rem 2rem;
+    text-decoration: none;
+}
+
+/* Feature Grid */
+.feature-grid {
+    display: grid;
+    /* Automatically handles mobile vs desktop sizing */
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    text-align: left;
+}
+
+.feature-card {
+    padding: 2.5rem 2rem;
+}
+
+.feature-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1.2rem;
+}
+
+/* Keyframe for the slick load animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
