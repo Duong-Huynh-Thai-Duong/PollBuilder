@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using PollBuilder.Application.DTOs.Polls;
 using PollBuilder.Application.Interfaces;
+using PollBuilder.API.Hubs;
 
 namespace PollBuilder.API.Controllers
 {
@@ -9,11 +11,13 @@ namespace PollBuilder.API.Controllers
     public class PollsController : ControllerBase
     {
         private readonly IPollService _pollService;
+        private readonly IHubContext<PollHub> _hubContext; // The SignalR Megaphone
 
         // Inject the service interface we built in the Application layer
-        public PollsController(IPollService pollService)
+        public PollsController(IPollService pollService, IHubContext<PollHub> hubContext)
         {
             _pollService = pollService;
+            _hubContext = hubContext;
         }
 
         /// <summary>
@@ -74,6 +78,10 @@ namespace PollBuilder.API.Controllers
             {
                 return NotFound(new { Message = $"Poll '{code}' not found or is currently inactive." });
             }
+
+            // THE REAL-TIME MAGIC:
+            // Shout "ReceiveNewVote" only to the browsers currently watching this specific poll code
+            await _hubContext.Clients.Group(code).SendAsync("ReceiveNewVote");
 
             return Ok(new { Message = "Vote successfully recorded!" });
         }

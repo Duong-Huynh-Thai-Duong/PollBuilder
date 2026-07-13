@@ -1,4 +1,5 @@
 using PollBuilder.Infrastructure;
+using PollBuilder.API.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +12,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 //builder.Services.AddOpenApi();
+
+// 1. TURN ON SIGNALR
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
@@ -27,5 +31,8 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// 2. MAP THE HUB URL
+app.MapHub<PollHub>("/pollHub");
 
 app.Run();
