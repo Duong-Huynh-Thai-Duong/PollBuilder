@@ -118,6 +118,89 @@ namespace PollBuilder.Infrastructure.Services
             return response;
         }
 
+        public async Task<bool> SubmitVoteAsync(string code, SubmitVoteDTO voteDto)
+        {
+            // 1. Find the poll to make sure it exists and is active
+            var poll = await _context.Polls
+                .Include(p => p.Questions)
+                .ThenInclude(q => q.Options)
+                .FirstOrDefaultAsync(p => p.Code == code);
+
+            if (poll == null || !poll.IsActive)
+            {
+                return false; // Poll not found or closed
+            }
+
+            // 2. Loop through each answer submitted by the user
+            foreach (var answer in voteDto.Answers)
+            {
+                // Security Check: Ensure the Question actually belongs to this Poll
+                var question = poll.Questions.FirstOrDefault(q => q.Id == answer.QuestionId);
+
+                // Security Check: Ensure the Option actually belongs to that Question
+                if (question != null && question.Options.Any(o => o.Id == answer.OptionId))
+                {
+                    // Create the new Vote record
+                    var vote = new Vote
+                    {
+                        QuestionId = answer.QuestionId,
+                        OptionId = answer.OptionId,
+                        // If your Vote entity requires a PollId or timestamp, assign them here:
+                        // PollId = poll.Id,
+                        // SubmittedAt = DateTime.UtcNow
+                    };
+
+                    _context.Set<Vote>().Add(vote);
+                }
+            }
+
+            // 3. Commit all valid votes to the SQL database at once
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
+        public async Task<PollResultDTO?> GetPollResultsAsync(string code)
+        {
+            // 1. Fetch the poll hierarchy
+            var poll = await _context.Polls
+                .Include(p => p.Questions)
+                .ThenInclude(q => q.Options)
+                .FirstOrDefaultAsync(p => p.Code == code);
+
+            if (poll == null)
+            {
+                return null;
+            }
+
+            // 2. Fetch all votes that belong to any question in this poll
+            var questionIds = poll.Questions.Select(q => q.Id).ToList();
+            var pollVotes = await _context.Set<Vote>()
+                .Where(v => questionIds.Contains(v.QuestionId))
+                .ToListAsync();
+
+            // 3. Map to DTO and calculate counts in memory
+            var result = new PollResultDTO
+            {
+                Title = poll.Title,
+                Description = poll.Description,
+                TotalPollVotes = pollVotes.Count, // Total votes calculated instantly
+                Questions = poll.Questions.OrderBy(q => q.Position).Select(q => new QuestionResultDTO
+                {
+                    Id = q.Id,
+                    Text = q.Text,
+                    Options = q.Options.OrderBy(o => o.Position).Select(o => new OptionResultDTO
+                    {
+                        Id = o.Id,
+                        Text = o.Text,
+                        // Count votes for this specific option from our memory list
+                        VoteCount = pollVotes.Count(v => v.OptionId == o.Id)
+                    }).ToList()
+                }).ToList()
+            };
+
+            return result;
+        }
         // Helper method to generate the random 5-character string
         private string GenerateShortCode()
         {

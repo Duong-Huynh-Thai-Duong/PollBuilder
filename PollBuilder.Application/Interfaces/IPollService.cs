@@ -10,5 +10,9 @@ namespace PollBuilder.Application.Interfaces
         /// Fetches a poll and all its nested questions/options using the 5-character short code.
         /// </summary>
         Task<PollResponseDTO?> GetPollByCodeAsync(string code);
+
+        Task<bool> SubmitVoteAsync(string code, SubmitVoteDTO voteDto);
+
+        Task<PollResultDTO?> GetPollResultsAsync(string code);
     }
 }

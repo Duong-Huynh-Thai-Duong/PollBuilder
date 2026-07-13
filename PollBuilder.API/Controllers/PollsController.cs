@@ -55,5 +55,44 @@ namespace PollBuilder.API.Controllers
             // If found, return a 200 OK status with the perfectly formatted JSON hierarchy
             return Ok(poll);
         }
+
+        /// <summary>
+        /// POST: api/polls/{code}/vote
+        /// Submits a user's vote for a specific poll.
+        /// </summary>
+        [HttpPost("{code}/vote")]
+        public async Task<IActionResult> SubmitVote(string code, [FromBody] SubmitVoteDTO voteDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var success = await _pollService.SubmitVoteAsync(code, voteDto);
+
+            if (!success)
+            {
+                return NotFound(new { Message = $"Poll '{code}' not found or is currently inactive." });
+            }
+
+            return Ok(new { Message = "Vote successfully recorded!" });
+        }
+
+        /// <summary>
+        /// GET: api/polls/{code}/results
+        /// Fetches the aggregated vote counts for a specific poll.
+        /// </summary>
+        [HttpGet("{code}/results")]
+        public async Task<IActionResult> GetPollResults(string code)
+        {
+            var results = await _pollService.GetPollResultsAsync(code);
+
+            if (results == null)
+            {
+                return NotFound(new { Message = $"No poll found with code: {code}" });
+            }
+
+            return Ok(results);
+        }
     }
 }
