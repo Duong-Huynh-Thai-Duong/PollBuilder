@@ -1,0 +1,59 @@
+﻿@model PollBuilder.MVC.ViewModels.TakePollViewModel
+
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="container mt-5 max-w-md" style="max-width: 800px;">
+    <!-- Poll Header -->
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold text-primary">@Model.Title</h1>
+        <p class="text-muted fs-5">Created by <span class="fw-bold">@Model.CreatorName</span></p>
+    </div>
+
+    <!-- The Form that catches the votes and sends them to the SubmitVoteViewModel -->
+    <form asp-controller="Voting" asp-action="SubmitVote" method="post">
+
+        <!-- Hidden input to ensure the server knows WHICH poll we are voting on -->
+        <input type="hidden" name="PollId" value="@Model.PollId" />
+
+        <!-- Loop through every question and draw a card -->
+        @for (int i = 0; i < Model.Questions.Count; i++)
+        {
+            var question = Model.Questions[i];
+
+            <div class="card shadow-sm mb-4 border-0" style="background-color: #f8f9fa;">
+                <div class="card-body p-4">
+                    <h4 class="fw-bold mb-4">@(i + 1). @question.Text</h4>
+
+                    <!-- Loop through the dictionary of options for this specific question -->
+                    @foreach (var option in question.AvailableOptions)
+                    {
+                        <div class="form-check custom-radio mb-3 fs-5">
+                            <!--
+                                THE MAGIC BINDING:
+                                We name the input "SelectedAnswers[QuestionId]" so it maps
+                                perfectly to the Dictionary in SubmitVoteViewModel!
+                            -->
+                            <input class="form-check-input" type="radio"
+                                   name="SelectedAnswers[@question.QuestionId]"
+                                   id="opt_@(option.Key)"
+                                   value="@option.Key" required>
+                            <label class="form-check-label w-100" style="cursor: pointer;" for="opt_@(option.Key)">
+                                @option.Value
+                            </label>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Submit Button -->
+        <div class="d-grid mt-5 mb-5">
+            <button type="submit" class="btn btn-success btn-lg fw-bold py-3">
+                📥 Submit My Vote
+            </button>
+        </div>
+
+    </form>
+</div>

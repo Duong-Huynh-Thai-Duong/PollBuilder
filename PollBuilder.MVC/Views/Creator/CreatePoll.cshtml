@@ -1,37 +1,36 @@
 ﻿@model PollBuilder.MVC.ViewModels.PollBuilderViewModel
 
 @{
-    ViewData["Title"] = "Create a New Survey";
+    ViewData["Title"] = "Create a New Poll";
 }
 
 <div class="container mt-5">
     <div class="row mb-4">
         <div class="col">
-            <h2 class="fw-bold">🖌️ Design Your Survey</h2>
-            <p class="text-muted">Mix and match question types below. Drag, drop, and publish!</p>
+            <h2 class="fw-bold">⚡ Fast Poll Builder</h2>
+            <p class="text-muted">Quick multiple-choice questions. Max 6 options per question.</p>
         </div>
     </div>
 
-    <form asp-controller="Creator" asp-action="CreateSurvey" method="post" id="poll-builder-form">
+    <form asp-controller="Creator" asp-action="CreatePoll" method="post" id="poll-builder-form">
 
         <div class="card shadow-sm mb-4 border-primary">
             <div class="card-body">
-                <label asp-for="FormTitle" class="form-label fw-bold text-primary">Survey Title</label>
-                <input asp-for="FormTitle" class="form-control form-control-lg" placeholder="e.g., Annual Employee Feedback" />
+                <label asp-for="FormTitle" class="form-label fw-bold text-primary">Poll Title</label>
+                <input asp-for="FormTitle" class="form-control form-control-lg" placeholder="e.g., Friday Team Lunch Destination" />
                 <span asp-validation-for="FormTitle" class="text-danger fw-bold"></span>
             </div>
         </div>
 
         <div id="questions-canvas" class="row mb-4">
-            <!-- Dynamic Canvas -->
         </div>
 
         <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded shadow-sm">
             <button type="button" id="add-question-btn" class="btn btn-outline-primary fw-bold">
-                ➕ Add Question Card
+                ➕ Add Question
             </button>
             <button type="submit" class="btn btn-success btn-lg px-5 fw-bold">
-                🚀 Publish Survey
+                🚀 Publish Poll
             </button>
         </div>
 
@@ -47,36 +46,24 @@
             const canvas = document.getElementById('questions-canvas');
             const addQuestionBtn = document.getElementById('add-question-btn');
 
-            // 1. Generate a new Question Card with the Type Dropdown
+            // 1. Generate a Simplified Question Card
             addQuestionBtn.addEventListener('click', () => {
                 const questionHtml = `
                     <div class="col-12 question-card mb-4">
                         <div class="card shadow-sm border-secondary">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between mb-3">
-                                    <h5 class="card-title text-secondary fw-bold">Question</h5>
-                                    <button type="button" class="btn btn-sm btn-outline-danger remove-question-btn">🗑️ Remove Card</button>
+                                    <h5 class="card-title text-secondary fw-bold">Multiple Choice Question</h5>
+                                    <button type="button" class="btn btn-sm btn-outline-danger remove-question-btn">🗑️ Remove</button>
                                 </div>
 
-                                <div class="row mb-3">
-                                    <div class="col-md-8">
-                                        <input type="text" class="form-control form-control-lg question-text" placeholder="Type your question here..." required />
-                                    </div>
-                                    <div class="col-md-4">
-                                        <select class="form-select form-select-lg question-type-select">
-                                            <option value="MultipleChoice">Multiple Choice</option>
-                                            <option value="YesNo">Yes/No</option>
-                                            <option value="Rating">Rating (1-5)</option>
-                                            <option value="OpenText">Open Text</option>
-                                        </select>
-                                    </div>
-                                </div>
+                                <input type="text" class="form-control form-control-lg mb-3 question-text" placeholder="Type your question here..." required />
+
+                                <input type="hidden" class="question-type" value="MultipleChoice" />
 
                                 <div class="options-wrapper">
-                                    <h6 class="text-muted fw-bold mt-3">Options (Max 6)</h6>
-                                    <div class="options-container">
-                                        <!-- Options injected here -->
-                                    </div>
+                                    <h6 class="text-muted fw-bold">Options (Max 6)</h6>
+                                    <div class="options-container"></div>
                                     <button type="button" class="btn btn-sm btn-outline-primary mt-2 add-option-btn">➕ Add Option</button>
                                 </div>
                             </div>
@@ -94,22 +81,7 @@
                 reindex();
             });
 
-            // 2. Hide/Show Options based on Question Type selection
-            canvas.addEventListener('change', function (e) {
-                if (e.target.classList.contains('question-type-select')) {
-                    const type = e.target.value;
-                    const wrapper = e.target.closest('.card-body').querySelector('.options-wrapper');
-
-                    if (type === 'MultipleChoice') {
-                        wrapper.style.display = 'block';
-                    } else {
-                        wrapper.style.display = 'none';
-                    }
-                    reindex(); // Re-index to disable hidden inputs
-                }
-            });
-
-            // 3. Handle Button Clicks
+            // 2. Handle Button Clicks
             canvas.addEventListener('click', function (e) {
                 if (e.target.classList.contains('remove-question-btn')) {
                     e.target.closest('.question-card').remove();
@@ -126,17 +98,15 @@
                     const container = e.target.closest('.options-container');
                     e.target.closest('.option-row').remove();
 
-                    // If we drop below 6, show the Add button again
                     const btn = container.parentElement.querySelector('.add-option-btn');
                     btn.style.display = 'inline-block';
                     reindex();
                 }
             });
 
-            // 4. Helper: Adds options and enforces the Max 6 rule
+            // 3. Helper: Adds options and enforces the Max 6 rule
             function addOption(container) {
-                const currentCount = container.querySelectorAll('.option-row').length;
-                if (currentCount >= 6) return; // Hard stop at 6
+                if (container.querySelectorAll('.option-row').length >= 6) return;
 
                 const optionHtml = `
                     <div class="input-group mb-2 option-row">
@@ -146,34 +116,26 @@
                 `;
                 container.insertAdjacentHTML('beforeend', optionHtml);
 
-                // Hide the button if we just added the 6th option
                 if (container.querySelectorAll('.option-row').length >= 6) {
                     container.parentElement.querySelector('.add-option-btn').style.display = 'none';
                 }
             }
 
-            // 5. Re-indexer: Names the inputs for C# and disables hidden ones
+            // 4. Re-indexer
             function reindex() {
                 const questions = document.querySelectorAll('.question-card');
 
                 questions.forEach((q, qIndex) => {
                     q.querySelector('.question-text').name = \`Questions[\${qIndex}].QuestionText\`;
+                    q.querySelector('.question-type').name = \`Questions[\${qIndex}].QuestionType\`;
 
-                    const typeSelect = q.querySelector('.question-type-select');
-                    if (typeSelect) typeSelect.name = \`Questions[\${qIndex}].QuestionType\`;
-
-                    const isMultipleChoice = typeSelect && typeSelect.value === 'MultipleChoice';
                     const options = q.querySelectorAll('.option-text');
-
                     options.forEach((opt, oIndex) => {
                         opt.name = \`Questions[\${qIndex}].Options[\${oIndex}].OptionText\`;
-                        // Disable the input if it's hidden so the browser doesn't block form submission!
-                        opt.disabled = !isMultipleChoice;
                     });
                 });
             }
 
-            // Start with one card on the canvas
             addQuestionBtn.click();
         });
     </script>
