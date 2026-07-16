@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
-using PollBuilder.MVC.Data;
+using PollBuilder.Infrastructure.Identity;
 
 namespace PollBuilder.MVC.Areas.Identity.Pages.Account;
 

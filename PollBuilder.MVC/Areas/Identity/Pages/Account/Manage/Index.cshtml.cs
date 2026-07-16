@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using PollBuilder.MVC.Data;
+using PollBuilder.Infrastructure.Identity;
 
 namespace PollBuilder.MVC.Areas.Identity.Pages.Account.Manage;
 

@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
-using PollBuilder.MVC.Data;
+using PollBuilder.Infrastructure.Identity;
 
 namespace PollBuilder.MVC.Areas.Identity.Pages.Account;
 
