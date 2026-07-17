@@ -183,9 +183,10 @@
     }
 </style>
 
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
 
+
+   @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const canvas = document.getElementById('questions-canvas');
@@ -193,10 +194,8 @@
             const questionCount = document.getElementById('question-count');
             let questionIndex = 0;
 
-            // ✅ FIX: Proper click handler for Add Question button
             addQuestionBtn.addEventListener('click', function(e) {
                 e.preventDefault();
-                console.log('Add Question clicked'); // Debug
                 addQuestionCard();
             });
 
@@ -208,73 +207,82 @@
                                 <h5 class="card-title text-primary fw-bold mb-0">
                                     <i class="fas fa-edit me-2"></i> Question ${questionIndex + 1}
                                 </h5>
-                                <button type="button" class="btn btn-sm btn-outline-danger remove-question-btn" title="Remove this question">
+                                <button type="button" class="btn btn-sm btn-outline-danger remove-question-btn">
                                     <i class="fas fa-trash me-1"></i> Remove
                                 </button>
                             </div>
-
-                            <!-- Question Text Input -->
-                            <div class="mb-4">
-                                <label class="form-label fw-bold text-dark">Question Text</label>
-                                <input type="text" 
-                                       class="form-control form-control-lg question-text" 
-                                       placeholder="e.g., Which language do you prefer?"
-                                       required />
-                                <small class="text-muted d-block mt-2">Be clear and specific</small>
-                            </div>
-
-                            <!-- Hidden Type -->
-                            <input type="hidden" class="question-type" value="MultipleChoice" />
-
-                            <!-- Options Section -->
-                            <div class="mb-4">
-                                <label class="form-label fw-bold text-dark d-flex align-items-center">
-                                    <i class="fas fa-list me-2 text-primary"></i> Options (Max 6)
-                                </label>
-                                <div class="options-container bg-light p-3 rounded">
-                                    <!-- Options will be added here -->
+                            
+                            <div class="row mb-4">
+                                <!-- Question Text -->
+                                <div class="col-md-8">
+                                    <label class="form-label fw-bold text-dark">Question Text</label>
+                                    <input type="text" class="form-control form-control-lg question-text" placeholder="e.g., Which language do you prefer?" required />
+                                </div>
+                                <!-- Question Type Dropdown -->
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold text-dark">Question Type</label>
+                                    <select class="form-select form-select-lg question-type-select">
+                                        <option value="MultipleChoice">Multiple Choice</option>
+                                        <option value="YesNo">Yes / No</option>
+                                        <option value="Rating">Rating (1-5 Stars)</option>
+                                        <option value="OpenText">Open Text Response</option>
+                                    </select>
                                 </div>
                             </div>
 
-                            <!-- Add Option Button -->
-                            <button type="button" class="btn btn-sm btn-outline-primary add-option-btn fw-bold">
-                                <i class="fas fa-plus me-1"></i> Add Option
-                            </button>
+                            <!-- Options Section (Hides dynamically) -->
+                            <div class="options-wrapper mb-4">
+                                <label class="form-label fw-bold text-dark d-flex align-items-center">
+                                    <i class="fas fa-list me-2 text-primary"></i> Options (Max 6)
+                                </label>
+                                <div class="options-container bg-light p-3 rounded"></div>
+                                <button type="button" class="btn btn-sm btn-outline-primary add-option-btn fw-bold mt-2">
+                                    <i class="fas fa-plus me-1"></i> Add Option
+                                </button>
+                            </div>
                         </div>
                     </div>
                 `;
-
                 canvas.insertAdjacentHTML('beforeend', questionHtml);
                 questionIndex++;
 
-                // Initialize the new question with 2 default options
                 const newQuestionCard = canvas.lastElementChild;
                 const optionsContainer = newQuestionCard.querySelector('.options-container');
                 addOption(optionsContainer);
                 addOption(optionsContainer);
-
+                
                 updateQuestionCount();
                 reindex();
             }
 
-            // ✅ Event delegation for dynamic elements
+            // Dynamic Events: Type Changing, Removing, Adding
+            canvas.addEventListener('change', function (e) {
+                if (e.target.classList.contains('question-type-select')) {
+                    const type = e.target.value;
+                    const wrapper = e.target.closest('.question-card').querySelector('.options-wrapper');
+                    
+                    // Only show the manual option builder for Multiple Choice
+                    if (type === 'MultipleChoice') {
+                        wrapper.style.display = 'block';
+                    } else {
+                        wrapper.style.display = 'none';
+                    }
+                    reindex();
+                }
+            });
+
             canvas.addEventListener('click', function (e) {
                 if (e.target.closest('.remove-question-btn')) {
-                    e.preventDefault();
                     e.target.closest('.question-card-wrapper').remove();
                     updateQuestionCount();
                     reindex();
                 }
-
                 if (e.target.closest('.add-option-btn')) {
-                    e.preventDefault();
                     const container = e.target.closest('.question-card').querySelector('.options-container');
                     addOption(container);
                     reindex();
                 }
-
                 if (e.target.closest('.remove-option-btn')) {
-                    e.preventDefault();
                     const container = e.target.closest('.options-container');
                     e.target.closest('.option-row').remove();
                     updateAddOptionButton(container);
@@ -284,32 +292,21 @@
 
             function addOption(container) {
                 if (container.querySelectorAll('.option-row').length >= 6) return;
-
                 const optionHtml = `
                     <div class="option-row">
-                        <input type="text" 
-                               class="form-control option-text" 
-                               placeholder="Enter option text..."
-                               required />
+                        <input type="text" class="form-control option-text" placeholder="Enter option text..." required />
                         <button type="button" class="btn btn-outline-danger btn-sm remove-option-btn" title="Remove option">
                             <i class="fas fa-times"></i>
                         </button>
-                    </div>
-                `;
+                    </div>`;
                 container.insertAdjacentHTML('beforeend', optionHtml);
-
                 updateAddOptionButton(container);
             }
 
             function updateAddOptionButton(container) {
                 const count = container.querySelectorAll('.option-row').length;
                 const btn = container.parentElement.querySelector('.add-option-btn');
-
-                if (count >= 6) {
-                    btn.style.display = 'none';
-                } else {
-                    btn.style.display = 'inline-block';
-                }
+                btn.style.display = count >= 6 ? 'none' : 'inline-block';
             }
 
             function updateQuestionCount() {
@@ -319,19 +316,24 @@
 
             function reindex() {
                 const questions = document.querySelectorAll('.question-card-wrapper');
-
                 questions.forEach((q, qIndex) => {
                     q.querySelector('.question-text').name = `Questions[${qIndex}].QuestionText`;
-                    q.querySelector('.question-type').name = `Questions[${qIndex}].QuestionType`;
-
+                    
+                    const typeSelect = q.querySelector('.question-type-select');
+                    typeSelect.name = `Questions[${qIndex}].QuestionType`;
+                    
+                    const isMultipleChoice = typeSelect.value === 'MultipleChoice';
                     const options = q.querySelectorAll('.option-text');
+                    
                     options.forEach((opt, oIndex) => {
                         opt.name = `Questions[${qIndex}].Options[${oIndex}].OptionText`;
+                        // Disable input if hidden so it doesn't trigger validation errors on submit
+                        opt.disabled = !isMultipleChoice; 
                     });
                 });
             }
 
-            // Initialize with first question
+            // Start with one card
             addQuestionCard();
         });
     </script>

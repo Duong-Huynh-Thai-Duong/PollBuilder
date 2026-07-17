@@ -10,6 +10,6 @@ namespace PollBuilder.MVC.ViewModels
         // Splitting these into two lists makes it incredibly easy to draw 
         // an "Active" section and a "Drafts" section on your HTML page!
         public List<PollSummaryViewModel> ActivePolls { get; set; } = new List<PollSummaryViewModel>();
-        public List<PollSummaryViewModel> DraftPolls { get; set; } = new List<PollSummaryViewModel>();
+       
     }
 }

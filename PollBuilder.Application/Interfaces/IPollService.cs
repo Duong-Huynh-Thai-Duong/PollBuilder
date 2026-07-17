@@ -19,5 +19,9 @@ namespace PollBuilder.Application.Interfaces
         /// Fetches all polls created by a specific user (creator).
         /// </summary>
         Task<List<PollResponseDTO>> GetPollsByCreatorAsync(string creatorId);
+
+        Task<bool> ClosePollAsync(string code, string creatorId);
+
+        Task<bool> DeletePollAsync(string code, string creatorId);
     }
 }

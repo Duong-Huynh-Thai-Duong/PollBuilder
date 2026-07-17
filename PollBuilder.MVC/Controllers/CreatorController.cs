@@ -5,6 +5,7 @@ using PollBuilder.Application.DTOs.Polls;
 using PollBuilder.Application.Interfaces;
 using PollBuilder.Infrastructure.Identity;
 using PollBuilder.MVC.ViewModels;
+using PollBuilder.Domain.Enums;
 
 namespace PollBuilder.MVC.Controllers
 {
@@ -42,41 +43,58 @@ namespace PollBuilder.MVC.Controllers
         /// Maps the front-end form data to CreatePollDTO and saves to database
         /// </summary>
         [HttpPost("create-poll")]
+        [AllowAnonymous] // <-- FIX 1: Allows testing without logging in
         public async Task<IActionResult> CreatePoll([FromForm] PollBuilderViewModel model)
         {
             try
             {
-                // Validation: Ensure at least one question with at least one option
                 if (model.Questions == null || model.Questions.Count == 0)
                 {
                     ModelState.AddModelError("", "You must add at least one question to your poll.");
                     return View(model);
                 }
 
-                // Get the current user ID (for logged-in creators)
-                var userId = User.Identity?.IsAuthenticated == true 
-                    ? await _userManager.GetUserIdAsync(await _userManager.GetUserAsync(User))
+                var userId = User.Identity?.IsAuthenticated == true
+                   ? _userManager.GetUserId(User)
                     : null;
 
-                // Map ViewModel to DTO
                 var createPollDto = new CreatePollDTO
                 {
                     Title = model.FormTitle,
-                    Description = model.FormTitle, // You can add a Description field to the ViewModel later
+                    Description = model.FormDescription,
                     CreatorId = userId,
-                    Questions = model.Questions.Select((q, index) => new CreateQuestionDTO
+                    Questions = model.Questions.Select((q, index) =>
                     {
-                        Text = q.QuestionText,
-                        Type = 0, // MultipleChoice (0)
-                        Position = index + 1,
-                        Options = q.Options.Select(o => o.OptionText).ToList()
+                        // Parse the dynamic type from the frontend
+                        var questionType = Enum.Parse<QuestionType>(q.QuestionType);
+
+                        // FIX 2: Handle Option generation based on type
+                        var optionsList = new List<string>();
+                        if (questionType == QuestionType.MultipleChoice)
+                        {
+                            optionsList = q.Options?.Select(o => o.OptionText).ToList() ?? new List<string>();
+                        }
+                        else if (questionType == QuestionType.YesNo)
+                        {
+                            optionsList = new List<string> { "Yes", "No" };
+                        }
+                        else if (questionType == QuestionType.Rating)
+                        {
+                            // Auto-generate 5 distinct options for the database!
+                            optionsList = new List<string> { "1 Star", "2 Stars", "3 Stars", "4 Stars", "5 Stars" };
+                        }
+
+                        return new CreateQuestionDTO
+                        {
+                            Text = q.QuestionText,
+                            Type = (int)questionType,
+                            Position = index + 1,
+                            Options = optionsList
+                        };
                     }).ToList()
                 };
 
-                // Call the service to save the poll
                 string pollCode = await _pollService.CreatePollAsync(createPollDto);
-
-                // Redirect to the poll results/sharing page
                 return RedirectToAction("PollCreated", new { code = pollCode });
             }
             catch (Exception ex)
@@ -86,6 +104,7 @@ namespace PollBuilder.MVC.Controllers
                 return View(model);
             }
         }
+        
 
         /// <summary>
         /// Show confirmation page after poll creation
@@ -140,7 +159,7 @@ namespace PollBuilder.MVC.Controllers
                 }
 
                 var userId = User.Identity?.IsAuthenticated == true
-                    ? await _userManager.GetUserIdAsync(await _userManager.GetUserAsync(User))
+                    ? _userManager.GetUserId(User)
                     : null;
 
                 var createPollDto = new CreatePollDTO
@@ -156,6 +175,8 @@ namespace PollBuilder.MVC.Controllers
                         Options = q.Options.Select(o => o.OptionText).ToList()
                     }).ToList()
                 };
+
+
 
                 string pollCode = await _pollService.CreatePollAsync(createPollDto);
                 return RedirectToAction("PollCreated", new { code = pollCode });

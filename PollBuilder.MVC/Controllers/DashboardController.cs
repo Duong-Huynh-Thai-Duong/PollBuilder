@@ -31,6 +31,7 @@ namespace PollBuilder.MVC.Controllers
         /// </summary>
         [HttpGet("")]
         [HttpGet("index")]
+        // FIX 1: Added <IActionResult> so the method can return the View
         public async Task<IActionResult> Index()
         {
             try
@@ -44,18 +45,23 @@ namespace PollBuilder.MVC.Controllers
                 // Fetch all polls created by this user
                 var userPolls = await _pollService.GetPollsByCreatorAsync(user.Id);
 
-                // Separate active and draft polls
-                var activePollSummaries = userPolls
-                    .Where(p => p.Status == "Created" || p.Status == "Active") // Active polls
-                    .Select(p => new PollSummaryViewModel
+                // FIX 2: Added <PollSummaryViewModel> inside the angle brackets
+                var activePollSummaries = new List<PollSummaryViewModel>();
+
+                foreach (var p in userPolls.Where(p => p.Status == "Created" || p.Status == "Open" || p.Status == "Ended"))
+                {
+                    // Ask the database for the real results for this specific poll
+                    var results = await _pollService.GetPollResultsAsync(p.Code);
+
+                    activePollSummaries.Add(new PollSummaryViewModel
                     {
                         PollId = p.Code,
                         Title = p.Title,
                         CreatedAt = p.LaunchDate,
                         Status = p.Status,
-                        TotalResponses = 0 // Will calculate from results if needed
-                    })
-                    .ToList();
+                        TotalResponses = results?.TotalPollVotes ?? 0
+                    });
+                }
 
                 var draftPollSummaries = userPolls
                     .Where(p => p.Status == "Draft")
@@ -73,7 +79,7 @@ namespace PollBuilder.MVC.Controllers
                 {
                     CreatorName = user.UserName ?? "Creator",
                     ActivePolls = activePollSummaries,
-                    DraftPolls = draftPollSummaries
+                   
                 };
 
                 return View(viewModel);
@@ -145,30 +151,47 @@ namespace PollBuilder.MVC.Controllers
             }
         }
 
+       
+
+        /// <summary>
+        /// Close a poll to prevent new votes
+        /// </summary>
+        [HttpPost("ClosePoll")]
+        public async Task<IActionResult> ClosePoll(string code)
+        {
+            var userId = _userManager.GetUserId(User);
+            if (userId == null) return Unauthorized();
+
+            bool success = await _pollService.ClosePollAsync(code, userId);
+
+            if (!success)
+            {
+                return BadRequest("Could not close poll. It may not exist or you don't have permission.");
+            }
+
+            // Refresh the page to show the new "Ended" status!
+            return RedirectToAction("Index");
+        }
+
         /// <summary>
         /// Delete a poll (only creator can do this)
-        /// This will also delete all votes associated with it
         /// </summary>
-        [HttpPost("delete-poll/{code}")]
+        [HttpPost("DeletePoll")]
+        
         public async Task<IActionResult> DeletePoll(string code)
         {
-            try
-            {
-                if (string.IsNullOrEmpty(code))
-                {
-                    return BadRequest("Poll code is required.");
-                }
+            var userId = _userManager.GetUserId(User);
+            if (userId == null) return Unauthorized();
 
-                // TODO: Implement delete logic in IPollService
-                // For now, this is a placeholder
+            bool success = await _pollService.DeletePollAsync(code, userId);
 
-                return Ok(new { message = "Poll deleted successfully." });
-            }
-            catch (Exception ex)
+            if (!success)
             {
-                _logger.LogError($"Error deleting poll {code}: {ex.Message}");
-                return StatusCode(500, "An error occurred while deleting the poll.");
+                return BadRequest("Could not delete poll. It may not exist or you don't have permission.");
             }
+
+            // Refresh the dashboard after deletion
+            return RedirectToAction("Index");
         }
     }
 }

@@ -118,7 +118,7 @@ namespace PollBuilder.MVC.Controllers
         /// </summary>
         [HttpGet("redirect")]
         [AllowAnonymous]
-        public IActionResult Redirect(string code)
+        public IActionResult RedirectToPoll(string code)
         {
             return RedirectToAction("LiveResults", new { code });
         }

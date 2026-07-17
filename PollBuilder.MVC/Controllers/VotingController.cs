@@ -10,6 +10,8 @@ namespace PollBuilder.MVC.Controllers
     public class VotingController : Controller
     {
         private readonly IPollService _pollService;
+
+        // FIX 1: Restored the <VotingController> type to the logger
         private readonly ILogger<VotingController> _logger;
         private const string VOTER_TOKEN_COOKIE = "PollBuilder_VoterToken";
 
@@ -19,171 +21,79 @@ namespace PollBuilder.MVC.Controllers
             _logger = logger;
         }
 
-        /// <summary>
-        /// Display the voting/poll-taking page (GET)
-        /// Maps /voting/take-poll/{code} to show poll questions and options
-        /// </summary>
         [HttpGet("take-poll/{code}")]
         [AllowAnonymous]
+        // FIX 2: Added <IActionResult> so the method can return a View or BadRequest
         public async Task<IActionResult> TakePoll(string code)
         {
-            if (string.IsNullOrEmpty(code))
+            if (string.IsNullOrEmpty(code)) return BadRequest("Poll code is required.");
+
+            var pollDto = await _pollService.GetPollByCodeAsync(code);
+            if (pollDto == null) return NotFound("Poll not found.");
+            if (pollDto.Status != "Created" && pollDto.Status != "Active") return BadRequest("This poll is closed.");
+
+            if (!Request.Cookies.ContainsKey(VOTER_TOKEN_COOKIE))
             {
-                return BadRequest("Poll code is required.");
+                var voterToken = Guid.NewGuid().ToString();
+                Response.Cookies.Append(VOTER_TOKEN_COOKIE, voterToken, new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.Strict,
+                    Expires = DateTimeOffset.UtcNow.AddMonths(1)
+                });
             }
 
-            try
+            var viewModel = new TakePollViewModel
             {
-                // Fetch poll data from the database
-                var pollDto = await _pollService.GetPollByCodeAsync(code);
-
-                if (pollDto == null)
+                PollId = code,
+                Title = pollDto.Title,
+                CreatorName = "Poll Creator",
+                Questions = pollDto.Questions.Select(q => new DisplayQuestionViewModel
                 {
-                    return NotFound("Poll not found. The poll code may be invalid or expired.");
-                }
+                    QuestionId = q.Id.ToString(),
+                    Text = q.Text,
+                    Type = q.Type,
+                    AvailableOptions = q.Options.ToDictionary(o => o.Id.ToString(), o => o.Text)
+                }).ToList()
+            };
 
-                // Check if poll is still active
-                if (pollDto.Status != "Created" && pollDto.Status != "Active")
-                {
-                    return BadRequest("This poll is no longer accepting votes.");
-                }
-
-                // Generate or retrieve voter token for anonymous tracking
-                if (!Request.Cookies.ContainsKey(VOTER_TOKEN_COOKIE))
-                {
-                    var voterToken = Guid.NewGuid().ToString();
-                    Response.Cookies.Append(VOTER_TOKEN_COOKIE, voterToken, new Microsoft.AspNetCore.Http.CookieOptions
-                    {
-                        HttpOnly = true,
-                        Secure = true,
-                        SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict,
-                        Expires = DateTimeOffset.UtcNow.AddMonths(1)
-                    });
-                }
-
-                // Map DTO to ViewModel for the view
-                var viewModel = new TakePollViewModel
-                {
-                    PollId = code, // Store the short code instead of the database ID
-                    Title = pollDto.Title,
-                    CreatorName = "Poll Creator", // TODO: Fetch actual creator name if needed
-                    Questions = pollDto.Questions.Select(q => new DisplayQuestionViewModel
-                    {
-                        QuestionId = q.Id.ToString(),
-                        Text = q.Text,
-                        AvailableOptions = q.Options.ToDictionary(o => o.Id.ToString(), o => o.Text)
-                    }).ToList()
-                };
-
-                return View(viewModel);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error loading poll {code}: {ex.Message}");
-                return StatusCode(500, "An error occurred while loading the poll.");
-            }
+            return View(viewModel);
         }
 
-        /// <summary>
-        /// Handle vote submission (POST)
-        /// Receives SelectedAnswers dictionary and creates Vote records
-        /// </summary>
         [HttpPost("submit-vote")]
         [AllowAnonymous]
-        public async Task<IActionResult> SubmitVote([FromForm] string pollCode, [FromForm] Dictionary<string, string> selectedAnswers)
+        // FIX 2: Added <IActionResult> here as well
+        public async Task<IActionResult> SubmitVote(SubmitVoteViewModel model)
         {
-            try
+            if (!ModelState.IsValid || model.SelectedAnswers == null)
             {
-                if (string.IsNullOrEmpty(pollCode))
-                {
-                    return BadRequest("Poll code is required.");
-                }
+                return BadRequest("You must select at least one answer.");
+            }
 
-                if (selectedAnswers == null || selectedAnswers.Count == 0)
-                {
-                    return BadRequest("You must select at least one answer.");
-                }
+            var voterToken = Request.Cookies[VOTER_TOKEN_COOKIE] ?? Guid.NewGuid().ToString();
 
-                // Get the voter token from cookie (for anonymous tracking)
-                var voterToken = Request.Cookies[VOTER_TOKEN_COOKIE] ?? Guid.NewGuid().ToString();
-
-                // Build the DTO for submission
-                var submitVoteDto = new SubmitVoteDTO
+            var submitVoteDto = new SubmitVoteDTO
+            {
+                VoterName = voterToken,
+                Answers = model.SelectedAnswers.Select(kvp =>
                 {
-                    VoterName = voterToken, // Store voterToken as VoterName for now
-                    Answers = selectedAnswers.Select(kvp => new QuestionAnswerDTO
+                    bool isGuidOption = Guid.TryParse(kvp.Value, out Guid parsedOptionId);
+
+                    return new QuestionAnswerDTO
                     {
                         QuestionId = Guid.Parse(kvp.Key),
-                        OptionId = Guid.Parse(kvp.Value)
-                    }).ToList()
-                };
+                        OptionId = isGuidOption ? parsedOptionId : null,
+                        OpinionText = isGuidOption ? null : kvp.Value
+                    };
+                }).ToList()
+            };
 
-                // Submit the vote
-                bool success = await _pollService.SubmitVoteAsync(pollCode, submitVoteDto);
+            bool success = await _pollService.SubmitVoteAsync(model.PollId, submitVoteDto);
 
-                if (!success)
-                {
-                    return BadRequest("Failed to submit vote. The poll may be closed or invalid.");
-                }
+            if (!success) return BadRequest("Failed to submit vote. You may have already voted, or the poll is closed.");
 
-                // Redirect to results page
-                return RedirectToAction("LiveResults", "Results", new { code = pollCode });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error submitting vote: {ex.Message}");
-                return StatusCode(500, "An error occurred while submitting your vote.");
-            }
-        }
-
-        /// <summary>
-        /// Alternative route mapping for form action asp-action="SubmitVote"
-        /// This handles the traditional ASP.NET Core form submission pattern
-        /// </summary>
-        [HttpPost("submit-vote")]
-        [AllowAnonymous]
-        public async Task<IActionResult> SubmitVoteForm(SubmitVoteViewModel model)
-        {
-            try
-            {
-                if (model?.SelectedAnswers == null || model.SelectedAnswers.Count == 0)
-                {
-                    ModelState.AddModelError("", "You must select at least one answer.");
-                    return BadRequest(ModelState);
-                }
-
-                var voterToken = Request.Cookies[VOTER_TOKEN_COOKIE] ?? Guid.NewGuid().ToString();
-
-                // Extract the poll code from the model (you need to add this to SubmitVoteViewModel)
-                string pollCode = TempData["PollCode"]?.ToString() ?? "";
-
-                var submitVoteDto = new SubmitVoteDTO
-                {
-                    VoterName = voterToken, // Store voterToken as VoterName for now
-                    Answers = model.SelectedAnswers
-                        .Where(kvp => kvp.Value != null)
-                        .Select(kvp => new QuestionAnswerDTO
-                        {
-                            QuestionId = Guid.Parse(kvp.Key),
-                            OptionId = Guid.Parse(kvp.Value)
-                        }).ToList()
-                };
-
-                bool success = await _pollService.SubmitVoteAsync(pollCode, submitVoteDto);
-
-                if (!success)
-                {
-                    return BadRequest("Failed to submit vote. The poll may be closed or invalid.");
-                }
-
-                return RedirectToAction("LiveResults", "Results", new { code = pollCode });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error submitting vote: {ex.Message}");
-                ModelState.AddModelError("", "An error occurred while submitting your vote.");
-                return BadRequest(ModelState);
-            }
+            return RedirectToAction("LiveResults", "Results", new { code = model.PollId });
         }
     }
 }

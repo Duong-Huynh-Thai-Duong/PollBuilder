@@ -19,6 +19,8 @@ namespace PollBuilder.MVC.ViewModels
         public string QuestionId { get; set; } = string.Empty;
         public string Text { get; set; } = string.Empty;
 
+        public int Type { get; set; }
+
         // A dictionary is perfect here: OptionId is the Key, OptionText is the Value
         public Dictionary<string, string> AvailableOptions { get; set; } = new Dictionary<string, string>();
     }

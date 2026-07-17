@@ -157,7 +157,7 @@
                 const questions = document.querySelectorAll('.question-card');
 
                 questions.forEach((q, qIndex) => {
-                    q.querySelector('.question-text').name = \`Questions[\${qIndex}].QuestionText\`;
+                    q.querySelector('.question-text').name = `Questions[\${qIndex}].QuestionText\`;
 
                     const typeSelect = q.querySelector('.question-type-select');
                     if (typeSelect) typeSelect.name = \`Questions[\${qIndex}].QuestionType\`;

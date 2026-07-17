@@ -26,22 +26,37 @@
                 <div class="card-body p-4">
                     <h4 class="fw-bold mb-4">@(i + 1). @question.Text</h4>
 
-                    <!-- Loop through the dictionary of options for this specific question -->
-                    @foreach (var option in question.AvailableOptions)
+                    @if (question.Type == 0 || question.Type == 1)
                     {
-                        <div class="form-check custom-radio mb-3 fs-5">
-                            <!--
-                                THE MAGIC BINDING:
-                                We name the input "SelectedAnswers[QuestionId]" so it maps
-                                perfectly to the Dictionary in SubmitVoteViewModel!
-                            -->
-                            <input class="form-check-input" type="radio"
-                                   name="SelectedAnswers[@question.QuestionId]"
-                                   id="opt_@(option.Key)"
-                                   value="@option.Key" required>
-                            <label class="form-check-label w-100" style="cursor: pointer;" for="opt_@(option.Key)">
-                                @option.Value
-                            </label>
+                        <!-- Multiple Choice & Yes/No -->
+                        @foreach (var option in question.AvailableOptions)
+                        {
+                            <div class="form-check custom-radio mb-3 fs-5">
+                                <input class="form-check-input" type="radio" name="SelectedAnswers[@question.QuestionId]" id="opt_@(option.Key)" value="@option.Key" required>
+                                <label class="form-check-label w-100" style="cursor: pointer;" for="opt_@(option.Key)">@option.Value</label>
+                            </div>
+                        }
+                    }
+                    else if (question.Type == 2)
+                    {
+                        <!-- Rating (1-5 Stars) -->
+                        <div class="d-flex gap-4 justify-content-center my-4">
+                            @foreach (var option in question.AvailableOptions)
+                            {
+                                <div class="text-center">
+                                    <input type="radio" class="btn-check" name="SelectedAnswers[@question.QuestionId]" id="rate_@(option.Key)" value="@option.Key" required autocomplete="off">
+                                    <label class="btn btn-outline-warning rounded-circle fs-4" style="width: 60px; height: 60px; line-height: 45px;" for="rate_@(option.Key)">
+                                        @option.Value.Substring(0, 1) <!-- Grabs just the number -->
+                                    </label>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else if (question.Type == 3)
+                    {
+                        <!-- Open Text -->
+                        <div class="mb-3">
+                            <textarea class="form-control" name="SelectedAnswers[@question.QuestionId]" rows="4" placeholder="Type your response here..." required></textarea>
                         </div>
                     }
                 </div>

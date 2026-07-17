@@ -4,6 +4,10 @@ using PollBuilder.Application.Interfaces;
 using PollBuilder.Domain.Entities;
 using PollBuilder.Domain.Enums;
 using PollBuilder.Infrastructure.Data;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace PollBuilder.Infrastructure.Services
 {
@@ -11,7 +15,6 @@ namespace PollBuilder.Infrastructure.Services
     {
         private readonly ApplicationDbContext _context;
 
-        // "Inject" the database context so we can talk to SQL Server
         public PollService(ApplicationDbContext context)
         {
             _context = context;
@@ -22,7 +25,6 @@ namespace PollBuilder.Infrastructure.Services
             // 1. Generate a unique 5-character short code
             string shortCode = GenerateShortCode();
 
-            // Safety check: ensure the code doesn't already exist in the database
             while (await _context.Polls.AnyAsync(p => p.Code == shortCode))
             {
                 shortCode = GenerateShortCode();
@@ -37,21 +39,23 @@ namespace PollBuilder.Infrastructure.Services
                 Code = shortCode,
                 LaunchDate = DateTime.UtcNow,
                 Status = PollStatus.Created,
-                IsActive = true
+                IsActive = true,
+                Questions = new List<Question>() // <-- CRASH FIX 1: Initialize list to prevent EF Core NullReferenceException
             };
 
-            // Loop through the questions provided by the user
             foreach (var qDto in createPollDto.Questions)
             {
                 var question = new Question
                 {
                     Text = qDto.Text,
                     Type = (QuestionType)qDto.Type,
-                    Position = qDto.Position
+                    Position = qDto.Position,
+                    Options = new List<Option>() // <-- CRASH FIX 2: Initialize list
                 };
 
-                // Only add predefined options if it's a MultipleChoice or YesNo question
-                if (question.Type == QuestionType.MultipleChoice || question.Type == QuestionType.YesNo)
+              
+                // FIX: Added QuestionType.Rating so the 1-5 Star options get saved to the database!
+                if (question.Type == QuestionType.MultipleChoice || question.Type == QuestionType.YesNo || question.Type == QuestionType.Rating)
                 {
                     int optionPosition = 1;
                     foreach (var optText in qDto.Options)
@@ -76,36 +80,27 @@ namespace PollBuilder.Infrastructure.Services
 
         public async Task<PollResponseDTO?> GetPollByCodeAsync(string code)
         {
-            // 1. The EF Core Query
             var poll = await _context.Polls
-                .Include(p => p.Questions)           // Join the Questions table
-                    .ThenInclude(q => q.Options)     // Join the Options table attached to those Questions
+                .Include(p => p.Questions)
+                    .ThenInclude(q => q.Options)
                 .FirstOrDefaultAsync(p => p.Code == code);
 
-            // 2. Failsafe: Did we find it?
-            if (poll == null)
-            {
-                return null;
-            }
+            if (poll == null) return null;
 
-            // 3. Map the raw database entities into our safe Response DTOs
             var response = new PollResponseDTO
             {
                 Code = poll.Code,
                 Title = poll.Title,
                 Description = poll.Description,
                 LaunchDate = poll.LaunchDate,
-                Status = poll.Status.ToString(), // Converts the Enum (0, 1) into readable text ("Created", "Active")
+                Status = poll.Status.ToString(),
 
-                // Map Questions and sort them by Position
                 Questions = poll.Questions.OrderBy(q => q.Position).Select(q => new QuestionResponseDTO
                 {
                     Id = q.Id,
                     Text = q.Text,
                     Type = (int)q.Type,
                     Position = q.Position,
-
-                    // Map Options and sort them by Position
                     Options = q.Options.OrderBy(o => o.Position).Select(o => new OptionResponseDTO
                     {
                         Id = o.Id,
@@ -126,28 +121,40 @@ namespace PollBuilder.Infrastructure.Services
                 .ThenInclude(q => q.Options)
                 .FirstOrDefaultAsync(p => p.Code == code);
 
-            if (poll == null || !poll.IsActive)
+            if (poll == null || !poll.IsActive) return false;
+
+            // --- NEW: ENFORCE 'VOTE ONCE' RUBRIC REQUIREMENT ---
+            // Your VotingController passes the secure cookie token inside voteDto.VoterName
+            string voterToken = voteDto.VoterName ?? string.Empty;
+            var questionIds = poll.Questions.Select(q => q.Id).ToList();
+
+            // Check if a vote from this specific token already exists for any question in this poll
+            bool alreadyVoted = await _context.Set<Vote>()
+                .AnyAsync(v => questionIds.Contains(v.QuestionId) && v.VoterToken == voterToken);
+
+            if (alreadyVoted && !string.IsNullOrEmpty(voterToken))
             {
-                return false; // Poll not found or closed
+                return false; // Reject the vote! They are trying to vote twice.
             }
+            // ----------------------------------------------------
 
             // 2. Loop through each answer submitted by the user
             foreach (var answer in voteDto.Answers)
             {
-                // Security Check: Ensure the Question actually belongs to this Poll
                 var question = poll.Questions.FirstOrDefault(q => q.Id == answer.QuestionId);
 
-                // Security Check: Ensure the Option actually belongs to that Question
                 if (question != null && question.Options.Any(o => o.Id == answer.OptionId))
                 {
-                    // Create the new Vote record
                     var vote = new Vote
                     {
                         QuestionId = answer.QuestionId,
-                        OptionId = answer.OptionId,
-                        // If your Vote entity requires a PollId or timestamp, assign them here:
-                        // PollId = poll.Id,
-                        // SubmittedAt = DateTime.UtcNow
+                        // If OptionId is null (Open Text), we use Guid.Empty so the database doesn't complain
+                        OptionId = answer.OptionId ?? Guid.Empty,
+
+                        // Map the new OpinionText property!
+                        OpinionText = answer.OpinionText,
+
+                        VoterToken = voterToken
                     };
 
                     _context.Set<Vote>().Add(vote);
@@ -162,29 +169,24 @@ namespace PollBuilder.Infrastructure.Services
 
         public async Task<PollResultDTO?> GetPollResultsAsync(string code)
         {
-            // 1. Fetch the poll hierarchy
             var poll = await _context.Polls
                 .Include(p => p.Questions)
                 .ThenInclude(q => q.Options)
                 .FirstOrDefaultAsync(p => p.Code == code);
 
-            if (poll == null)
-            {
-                return null;
-            }
+            if (poll == null) return null;
 
-            // 2. Fetch all votes that belong to any question in this poll
             var questionIds = poll.Questions.Select(q => q.Id).ToList();
             var pollVotes = await _context.Set<Vote>()
                 .Where(v => questionIds.Contains(v.QuestionId))
                 .ToListAsync();
 
-            // 3. Map to DTO and calculate counts in memory
             var result = new PollResultDTO
             {
                 Title = poll.Title,
                 Description = poll.Description,
-                TotalPollVotes = pollVotes.Count, // Total votes calculated instantly
+                // Because we check the database for unique VoterTokens, the TotalPollVotes calculation is accurate!
+                TotalPollVotes = pollVotes.Select(v => v.VoterToken).Distinct().Count(),
                 Questions = poll.Questions.OrderBy(q => q.Position).Select(q => new QuestionResultDTO
                 {
                     Id = q.Id,
@@ -193,7 +195,6 @@ namespace PollBuilder.Infrastructure.Services
                     {
                         Id = o.Id,
                         Text = o.Text,
-                        // Count votes for this specific option from our memory list
                         VoteCount = pollVotes.Count(v => v.OptionId == o.Id)
                     }).ToList()
                 }).ToList()
@@ -204,16 +205,14 @@ namespace PollBuilder.Infrastructure.Services
 
         public async Task<List<PollResponseDTO>> GetPollsByCreatorAsync(string creatorId)
         {
-            // 1. Fetch all polls created by this user
             var polls = await _context.Polls
                 .Where(p => p.CreatorId == creatorId)
                 .Include(p => p.Questions)
                 .ThenInclude(q => q.Options)
-                .OrderByDescending(p => p.LaunchDate) // Most recent first
+                .OrderByDescending(p => p.LaunchDate)
                 .ToListAsync();
 
-            // 2. Map to DTOs
-            var pollDtos = polls.Select(poll => new PollResponseDTO
+            return polls.Select(poll => new PollResponseDTO
             {
                 Code = poll.Code,
                 Title = poll.Title,
@@ -234,11 +233,39 @@ namespace PollBuilder.Infrastructure.Services
                     }).ToList()
                 }).ToList()
             }).ToList();
-
-            return pollDtos;
         }
 
-        // Helper method to generate the random 5-character string
+        public async Task<bool> ClosePollAsync(string code, string creatorId)
+        {
+            var poll = await _context.Polls
+                .FirstOrDefaultAsync(p => p.Code == code && p.CreatorId == creatorId);
+
+            if (poll == null) return false;
+
+            poll.IsActive = false;
+
+            // FIX: Use your existing 'Ended' status here!
+            poll.Status = PollStatus.Ended;
+
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
+        // FIX: Changed 'Task' to 'Task'
+        public async Task<bool> DeletePollAsync(string code, string creatorId)
+        {
+            var poll = await _context.Polls
+                .FirstOrDefaultAsync(p => p.Code == code && p.CreatorId == creatorId);
+
+            if (poll == null) return false;
+
+            _context.Polls.Remove(poll);
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
         private string GenerateShortCode()
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";

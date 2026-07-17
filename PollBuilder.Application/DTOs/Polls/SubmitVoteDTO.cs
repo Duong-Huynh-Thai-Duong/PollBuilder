@@ -12,6 +12,11 @@
     public class QuestionAnswerDTO
     {
         public Guid QuestionId { get; set; }
-        public Guid OptionId { get; set; }
+
+        // Make OptionId nullable, since OpenText questions won't have a specific Option selected
+        public Guid? OptionId { get; set; }
+
+        // Add your new OpinionText property
+        public string? OpinionText { get; set; }
     }
 }
