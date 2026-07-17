@@ -1,5 +1,222 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model PollBuilder.MVC.ViewModels.DashboardViewModel
+
 @{
+    ViewData["Title"] = "My Dashboard";
 }
+
+<div class="container mt-5">
+    <!-- Welcome Header -->
+    <div class="row mb-5">
+        <div class="col-md-8">
+            <h1 class="display-4">Welcome back, <span class="text-primary">@Model.CreatorName</span>! 👋</h1>
+            <p class="lead text-muted">Manage your polls, surveys, and see how people are responding</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="/creator/create-poll" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus"></i> Create New Poll
+            </a>
+        </div>
+    </div>
+
+    <!-- Active Polls Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="d-flex align-items-center mb-4">
+                <h2 class="mb-0">📊 Active Polls</h2>
+                <span class="badge bg-success ms-3">@Model.ActivePolls.Count</span>
+            </div>
+
+            @if (Model.ActivePolls.Any())
+            {
+                <div class="row">
+                    @foreach (var poll in Model.ActivePolls)
+                    {
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card h-100 shadow-sm hover-shadow-md">
+                                <!-- Poll Card Header -->
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <div>
+                                            <h5 class="card-title mb-2">@poll.Title</h5>
+                                            <small class="text-muted">
+                                                <i class="far fa-calendar"></i>
+                                                @poll.CreatedAt.ToString("MMM dd, yyyy")
+                                            </small>
+                                        </div>
+                                        <span class="badge bg-success">@poll.Status</span>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <small class="fw-bold">Responses</small>
+                                            <small class="text-muted">@poll.TotalResponses votes</small>
+                                        </div>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar" role="progressbar" 
+                                                 style="width: @(poll.TotalResponses > 0 ? ((poll.TotalResponses % 100) + 1) : 5)%">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Poll Card Footer -->
+                                <div class="card-footer bg-light d-flex gap-2">
+                                    <a href="/results/live-results/@poll.PollId" 
+                                       class="btn btn-sm btn-outline-primary flex-grow-1" 
+                                       title="View detailed results">
+                                        <i class="fas fa-chart-bar"></i> Results
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" 
+                                            data-bs-toggle="tooltip" title="Copy poll link to clipboard"
+                                            onclick="copyToClipboard('http://localhost:5000/voting/take-poll/@poll.PollId')">
+                                        <i class="fas fa-share"></i> Share
+                                    </button>
+                                    <a href="/dashboard/poll/@poll.PollId" 
+                                       class="btn btn-sm btn-outline-info"
+                                       title="View poll statistics">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info" role="alert">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>No active polls yet!</strong> Create your first poll to get started.
+                    <a href="/creator/create-poll" class="btn btn-sm btn-info ms-2">Create Poll</a>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Draft Polls Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="d-flex align-items-center mb-4">
+                <h2 class="mb-0">📝 Draft Polls</h2>
+                <span class="badge bg-secondary ms-3">@Model.DraftPolls.Count</span>
+            </div>
+
+            @if (Model.DraftPolls.Any())
+            {
+                <div class="row">
+                    @foreach (var poll in Model.DraftPolls)
+                    {
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card h-100 shadow-sm opacity-75">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <div>
+                                            <h5 class="card-title mb-2">@poll.Title</h5>
+                                            <small class="text-muted">
+                                                <i class="far fa-calendar"></i>
+                                                @poll.CreatedAt.ToString("MMM dd, yyyy")
+                                            </small>
+                                        </div>
+                                        <span class="badge bg-secondary">Draft</span>
+                                    </div>
+                                    <p class="card-text text-muted small">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        This poll is not yet published
+                                    </p>
+                                </div>
+                                <div class="card-footer bg-light">
+                                    <a href="/creator/edit-poll/@poll.PollId" class="btn btn-sm btn-outline-primary w-100">
+                                        <i class="fas fa-edit"></i> Edit & Publish
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-light" role="alert">
+                    <i class="fas fa-clipboard"></i> No draft polls. All your polls are live!
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Quick Stats Section -->
+    <div class="row">
+        <div class="col-md-3 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="display-6 text-primary">@Model.ActivePolls.Count</h3>
+                    <p class="card-text text-muted">Active Polls</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="display-6 text-info">@Model.ActivePolls.Sum(p => p.TotalResponses)</h3>
+                    <p class="card-text text-muted">Total Responses</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="display-6 text-secondary">@Model.DraftPolls.Count</h3>
+                    <p class="card-text text-muted">Draft Polls</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="display-6 text-success">@(Model.ActivePolls.Count + Model.DraftPolls.Count)</h3>
+                    <p class="card-text text-muted">Total Polls</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Styles for Cards -->
+<style>
+    .hover-shadow-md:hover {
+        box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175) !important;
+        transform: translateY(-2px);
+        transition: all 0.3s ease;
+    }
+
+    .card {
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0, 0, 0, 0.125);
+    }
+
+    .progress {
+        background-color: #e9ecef;
+    }
+
+    .card-footer {
+        border-top: 1px solid rgba(0, 0, 0, 0.125);
+    }
+</style>
+
+<!-- Script for Copy to Clipboard -->
+<script>
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Poll link copied to clipboard! Share it with anyone.');
+        }).catch(() => {
+            alert('Failed to copy link');
+        });
+    }
+
+    // Enable tooltips
+    document.addEventListener('DOMContentLoaded', function () {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>

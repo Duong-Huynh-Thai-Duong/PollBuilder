@@ -14,5 +14,10 @@ namespace PollBuilder.Application.Interfaces
         Task<bool> SubmitVoteAsync(string code, SubmitVoteDTO voteDto);
 
         Task<PollResultDTO?> GetPollResultsAsync(string code);
+
+        /// <summary>
+        /// Fetches all polls created by a specific user (creator).
+        /// </summary>
+        Task<List<PollResponseDTO>> GetPollsByCreatorAsync(string creatorId);
     }
 }

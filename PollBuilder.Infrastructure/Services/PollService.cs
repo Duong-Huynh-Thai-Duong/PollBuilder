@@ -201,6 +201,43 @@ namespace PollBuilder.Infrastructure.Services
 
             return result;
         }
+
+        public async Task<List<PollResponseDTO>> GetPollsByCreatorAsync(string creatorId)
+        {
+            // 1. Fetch all polls created by this user
+            var polls = await _context.Polls
+                .Where(p => p.CreatorId == creatorId)
+                .Include(p => p.Questions)
+                .ThenInclude(q => q.Options)
+                .OrderByDescending(p => p.LaunchDate) // Most recent first
+                .ToListAsync();
+
+            // 2. Map to DTOs
+            var pollDtos = polls.Select(poll => new PollResponseDTO
+            {
+                Code = poll.Code,
+                Title = poll.Title,
+                Description = poll.Description,
+                LaunchDate = poll.LaunchDate,
+                Status = poll.Status.ToString(),
+                Questions = poll.Questions.OrderBy(q => q.Position).Select(q => new QuestionResponseDTO
+                {
+                    Id = q.Id,
+                    Text = q.Text,
+                    Type = (int)q.Type,
+                    Position = q.Position,
+                    Options = q.Options.OrderBy(o => o.Position).Select(o => new OptionResponseDTO
+                    {
+                        Id = o.Id,
+                        Text = o.Text,
+                        Position = o.Position
+                    }).ToList()
+                }).ToList()
+            }).ToList();
+
+            return pollDtos;
+        }
+
         // Helper method to generate the random 5-character string
         private string GenerateShortCode()
         {
