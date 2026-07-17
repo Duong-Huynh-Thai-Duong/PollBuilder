@@ -130,13 +130,22 @@ namespace PollBuilder.MVC.Controllers
                     Questions = resultsDto.Questions.Select(q => new QuestionResultViewModel
                     {
                         QuestionText = q.Text,
-                        TotalQuestionVotes = q.Options.Sum(o => o.VoteCount),
+                        Type = q.Type, // Pass the type through!
+
+                        // FIX: If it's OpenText, count the text answers. Otherwise, sum the options.
+                        TotalQuestionVotes = q.Type == PollBuilder.Domain.Enums.QuestionType.OpenText
+        ? (q.TextResponses?.Count ?? 0)
+        : q.Options.Sum(o => o.VoteCount),
+
+                        // FIX: Pass the text responses through (assuming your DTO has a TextResponses list)
+                        TextResponses = q.TextResponses ?? new List<string>(),
+
                         Options = q.Options.Select(o => new OptionResultViewModel
                         {
                             OptionText = o.Text,
                             VoteCount = o.VoteCount,
-                            VotePercentage = resultsDto.TotalPollVotes > 0 
-                                ? (o.VoteCount * 100.0 / resultsDto.TotalPollVotes) 
+                            VotePercentage = resultsDto.TotalPollVotes > 0
+                                ? (o.VoteCount * 100.0 / resultsDto.TotalPollVotes)
                                 : 0
                         }).ToList()
                     }).ToList()

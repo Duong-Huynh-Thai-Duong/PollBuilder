@@ -143,19 +143,32 @@ namespace PollBuilder.Infrastructure.Services
             {
                 var question = poll.Questions.FirstOrDefault(q => q.Id == answer.QuestionId);
 
-                if (question != null && question.Options.Any(o => o.Id == answer.OptionId))
+                if (question == null) continue;
+
+                // Check validity
+                bool isValid = (question.Type == QuestionType.OpenText)
+                               ? !string.IsNullOrEmpty(answer.OpinionText)
+                               : question.Options.Any(o => o.Id == answer.OptionId);
+
+                if (isValid)
                 {
                     var vote = new Vote
                     {
                         QuestionId = answer.QuestionId,
-                        // If OptionId is null (Open Text), we use Guid.Empty so the database doesn't complain
-                        OptionId = answer.OptionId ?? Guid.Empty,
-
-                        // Map the new OpinionText property!
                         OpinionText = answer.OpinionText,
-
                         VoterToken = voterToken
                     };
+
+                    // ONLY assign OptionId if it's not an OpenText question
+                    if (question.Type != QuestionType.OpenText)
+                    {
+                        vote.OptionId = answer.OptionId;
+                    }
+                    else
+                    {
+                        // Explicitly set to null for OpenText, which is allowed by your 'Guid?' property
+                        vote.OptionId = null;
+                    }
 
                     _context.Set<Vote>().Add(vote);
                 }
@@ -177,31 +190,45 @@ namespace PollBuilder.Infrastructure.Services
             if (poll == null) return null;
 
             var questionIds = poll.Questions.Select(q => q.Id).ToList();
+
+            // 1. Fetch choice-based votes
             var pollVotes = await _context.Set<Vote>()
                 .Where(v => questionIds.Contains(v.QuestionId))
                 .ToListAsync();
+
+            // 2. We use the Vote table for OpenText answers as well
+            var allVotes = pollVotes;
 
             var result = new PollResultDTO
             {
                 Title = poll.Title,
                 Description = poll.Description,
-                // Because we check the database for unique VoterTokens, the TotalPollVotes calculation is accurate!
                 TotalPollVotes = pollVotes.Select(v => v.VoterToken).Distinct().Count(),
                 Questions = poll.Questions.OrderBy(q => q.Position).Select(q => new QuestionResultDTO
                 {
                     Id = q.Id,
                     Text = q.Text,
+                    Type = q.Type,
+
                     Options = q.Options.OrderBy(o => o.Position).Select(o => new OptionResultDTO
                     {
                         Id = o.Id,
                         Text = o.Text,
                         VoteCount = pollVotes.Count(v => v.OptionId == o.Id)
-                    }).ToList()
+                    }).ToList(),
+
+                    // FIX: Use OpinionText instead of Content
+                    // We also filter out null/empty opinions so they don't show up in the UI
+                    TextResponses = allVotes
+                        .Where(v => v.QuestionId == q.Id && !string.IsNullOrEmpty(v.OpinionText))
+                        .Select(v => v.OpinionText!)
+                        .ToList() ?? new List<string>()
                 }).ToList()
             };
 
             return result;
         }
+
 
         public async Task<List<PollResponseDTO>> GetPollsByCreatorAsync(string creatorId)
         {

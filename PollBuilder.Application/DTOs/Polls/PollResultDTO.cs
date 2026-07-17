@@ -11,7 +11,9 @@
     public class QuestionResultDTO
     {
         public Guid Id { get; set; }
+        public PollBuilder.Domain.Enums.QuestionType Type { get; set; } // Add this
         public string Text { get; set; } = string.Empty;
+        public List<string> TextResponses { get; set; } = new();
         public List<OptionResultDTO> Options { get; set; } = new List<OptionResultDTO>();
     }
 
