@@ -6,14 +6,19 @@
 
 <div class="container mt-5">
     <!-- Welcome Header -->
-    <div class="row mb-5">
+    <div class="row mb-5 align-items-center">
         <div class="col-md-8">
-            <h1 class="display-4">Welcome back, <span class="text-primary">@Model.CreatorName</span>! 👋</h1>
-            <p class="lead text-muted">Manage your polls, surveys, and see how people are responding</p>
+            <h1 class="display-4 fw-bold">
+                Welcome back,<br />
+                <!-- Changed from text-primary to text-red -->
+                <span class="text-red">@Model.CreatorName</span>! 👋
+            </h1>
+            <p class="lead text-muted mt-2">Manage your polls, surveys, and see how people are responding</p>
         </div>
         <div class="col-md-4 text-end">
-            <a href="/creator/create-poll" class="btn btn-primary btn-lg">
-                <i class="fas fa-plus"></i> Create New Poll
+            <!-- Changed from btn-primary to our custom btn-red -->
+            <a href="/creator/create-poll" class="btn-red btn-lg d-inline-block text-decoration-none shadow-sm">
+                <i class="fas fa-plus me-2"></i> Create New Poll
             </a>
         </div>
     </div>
@@ -43,7 +48,7 @@
                                                 @poll.CreatedAt.ToString("MMM dd, yyyy")
                                             </small>
                                         </div>
-                                        <span class="badge bg-success">@poll.Status</span>
+                                        <span class="badge @(poll.Status == "Ended" ? "tag-ended" : "tag-active")">@poll.Status</span>
                                     </div>
 
                                     <div class="mb-3">

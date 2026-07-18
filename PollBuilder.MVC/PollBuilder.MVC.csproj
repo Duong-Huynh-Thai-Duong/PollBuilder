@@ -28,4 +28,8 @@
     <ProjectReference Include="..\PollBuilder.Infrastructure\PollBuilder.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\images\" />
+  </ItemGroup>
+
 </Project>

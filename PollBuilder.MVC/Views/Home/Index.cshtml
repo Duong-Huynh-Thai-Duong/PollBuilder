@@ -2,41 +2,31 @@
     ViewData["Title"] = "Welcome";
 }
 
-<div class="landing-container">
-
+<div class="landing-container text-center">
+    <!-- Hero Section -->
     <div class="hero-section">
-        <h1 class="hero-title">Build engaging polls in seconds.</h1>
+        <h1 class="hero-title">Welcome to ThruSub!</h1>
         <p class="hero-subtitle">
-            The cleanest, fastest way to capture real-time feedback. Create instant polls or comprehensive surveys with a beautiful, distraction-free workspace.
+            Where you can freely create poll anywhere, anytime.
         </p>
 
-        <div class="hero-actions">
+        <div class="hero-actions d-flex justify-content-center mt-5">
             @if (User.Identity?.IsAuthenticated == true)
             {
-                <a asp-controller="Dashboard" asp-action="Index" class="submit-btn hero-btn">
-                    Go to My Workspace 
+                <!-- Removed btn-red -->
+                <a asp-controller="Dashboard" asp-action="Index" class="hero-btn shadow-sm">
+                    Go to My Workspace
                 </a>
             }
             else
             {
-                <a asp-area="Identity" asp-page="/Account/Register" class="submit-btn hero-btn">
+                <!-- Removed btn-red -->
+                <a asp-area="Identity" asp-page="/Account/Register" class="hero-btn shadow-sm">
                     Create Your Poll Now !
                 </a>
-               
             }
         </div>
     </div>
 
-    <div class="feature-grid">
-        <div class="dash-card feature-card">
-            <div class="feature-icon">⚡</div>
-            <h3 class="card-title">Lightning Fast Polls</h3>
-            <p class="card-meta">Create and share a live polling link in under 10 seconds. Perfect for quick group decisions or team standups.</p>
-        </div>
-
-      
-
-       
-    </div>
-
+   
 </div>
