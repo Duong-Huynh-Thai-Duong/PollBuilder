@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using PollBuilder.Domain.Enums; // Ensure you have this using statement
+﻿using PollBuilder.Domain.Enums; // Ensure you have this using statement
 
 namespace PollBuilder.MVC.ViewModels
 {

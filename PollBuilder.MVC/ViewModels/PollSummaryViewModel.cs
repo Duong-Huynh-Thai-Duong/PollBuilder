@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace PollBuilder.MVC.ViewModels
+﻿namespace PollBuilder.MVC.ViewModels
 {
     public class PollSummaryViewModel
     {

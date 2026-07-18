@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using PollBuilder.API.Hubs;
 using PollBuilder.Application.DTOs.Polls;
 using PollBuilder.Application.Interfaces;
-using PollBuilder.API.Hubs;
 
 namespace PollBuilder.API.Controllers
 {

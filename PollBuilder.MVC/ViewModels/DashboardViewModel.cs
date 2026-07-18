@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace PollBuilder.MVC.ViewModels
+﻿namespace PollBuilder.MVC.ViewModels
 {
     public class DashboardViewModel
     {
@@ -10,6 +8,6 @@ namespace PollBuilder.MVC.ViewModels
         // Splitting these into two lists makes it incredibly easy to draw 
         // an "Active" section and a "Drafts" section on your HTML page!
         public List<PollSummaryViewModel> ActivePolls { get; set; } = new List<PollSummaryViewModel>();
-       
+
     }
 }

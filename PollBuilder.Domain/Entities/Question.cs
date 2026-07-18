@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualBasic.FileIO;
-using PollBuilder.Domain.Enums;
+﻿using PollBuilder.Domain.Enums;
 
 namespace PollBuilder.Domain.Entities
 {

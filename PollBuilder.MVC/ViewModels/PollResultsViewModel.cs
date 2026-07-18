@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace PollBuilder.MVC.ViewModels
+﻿namespace PollBuilder.MVC.ViewModels
 {
     public class PollResultsViewModel
     {

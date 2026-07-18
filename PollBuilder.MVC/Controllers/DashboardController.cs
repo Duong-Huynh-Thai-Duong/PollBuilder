@@ -79,7 +79,7 @@ namespace PollBuilder.MVC.Controllers
                 {
                     CreatorName = user.UserName ?? "Creator",
                     ActivePolls = activePollSummaries,
-                   
+
                 };
 
                 return View(viewModel);
@@ -160,7 +160,7 @@ namespace PollBuilder.MVC.Controllers
             }
         }
 
-       
+
 
         /// <summary>
         /// Close a poll to prevent new votes
@@ -186,7 +186,7 @@ namespace PollBuilder.MVC.Controllers
         /// Delete a poll (only creator can do this)
         /// </summary>
         [HttpPost("DeletePoll")]
-        
+
         public async Task<IActionResult> DeletePoll(string code)
         {
             var userId = _userManager.GetUserId(User);

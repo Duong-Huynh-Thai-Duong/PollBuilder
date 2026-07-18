@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PollBuilder.Application.DTOs.Polls;
 using PollBuilder.Application.Interfaces;
+using PollBuilder.Domain.Enums;
 using PollBuilder.Infrastructure.Identity;
 using PollBuilder.MVC.ViewModels;
-using PollBuilder.Domain.Enums;
 
 namespace PollBuilder.MVC.Controllers
 {
@@ -104,7 +104,7 @@ namespace PollBuilder.MVC.Controllers
                 return View(model);
             }
         }
-        
+
 
         /// <summary>
         /// Show confirmation page after poll creation

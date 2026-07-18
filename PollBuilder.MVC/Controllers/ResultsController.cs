@@ -44,13 +44,13 @@ namespace PollBuilder.MVC.Controllers
                 if (resultsDto == null)
                 {
                     // Return an empty results page if no votes yet
-                        var emptyViewModel = new PollResultsViewModel
-                        {
-                            PollTitle = pollDto.Title,
-                            TotalPollVotes = 0,
-                            Questions = new List<QuestionResultViewModel>()
-                        };
-                        return View(emptyViewModel);
+                    var emptyViewModel = new PollResultsViewModel
+                    {
+                        PollTitle = pollDto.Title,
+                        TotalPollVotes = 0,
+                        Questions = new List<QuestionResultViewModel>()
+                    };
+                    return View(emptyViewModel);
                 }
 
                 // Map DTO to ViewModel
@@ -66,8 +66,8 @@ namespace PollBuilder.MVC.Controllers
                         {
                             OptionText = o.Text,
                             VoteCount = o.VoteCount,
-                            VotePercentage = resultsDto.TotalPollVotes > 0 
-                                ? (o.VoteCount * 100.0 / resultsDto.TotalPollVotes) 
+                            VotePercentage = resultsDto.TotalPollVotes > 0
+                                ? (o.VoteCount * 100.0 / resultsDto.TotalPollVotes)
                                 : 0
                         }).ToList()
                     }).ToList()

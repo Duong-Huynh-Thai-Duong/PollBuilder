@@ -4,10 +4,6 @@ using PollBuilder.Application.Interfaces;
 using PollBuilder.Domain.Entities;
 using PollBuilder.Domain.Enums;
 using PollBuilder.Infrastructure.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace PollBuilder.Infrastructure.Services
 {
@@ -53,7 +49,7 @@ namespace PollBuilder.Infrastructure.Services
                     Options = new List<Option>() // <-- CRASH FIX 2: Initialize list
                 };
 
-              
+
                 // FIX: Added QuestionType.Rating so the 1-5 Star options get saved to the database!
                 if (question.Type == QuestionType.MultipleChoice || question.Type == QuestionType.YesNo || question.Type == QuestionType.Rating)
                 {

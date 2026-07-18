@@ -1,5 +1,5 @@
-using PollBuilder.Infrastructure;
 using PollBuilder.API.Hubs;
+using PollBuilder.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
