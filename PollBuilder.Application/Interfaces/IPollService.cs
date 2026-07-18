@@ -23,5 +23,7 @@ namespace PollBuilder.Application.Interfaces
         Task<bool> ClosePollAsync(string code, string creatorId);
 
         Task<bool> DeletePollAsync(string code, string creatorId);
+
+        Task<bool> HasUserVotedAsync(string pollCode, string voterToken);
     }
 }

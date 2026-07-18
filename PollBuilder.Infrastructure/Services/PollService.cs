@@ -151,8 +151,11 @@ namespace PollBuilder.Infrastructure.Services
                     var vote = new Vote
                     {
                         QuestionId = answer.QuestionId,
+                        OptionId = answer.OptionId,
                         OpinionText = answer.OpinionText,
-                        VoterToken = voterToken
+
+                        // FIX: Changed 'submitVoteDto' to 'voteDto' to match the method parameter!
+                        VoterToken = voteDto.VoterName ?? string.Empty
                     };
 
                     // ONLY assign OptionId if it's not an OpenText question
@@ -296,6 +299,17 @@ namespace PollBuilder.Infrastructure.Services
 
             return new string(Enumerable.Repeat(chars, 5)
                 .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+        public async Task<bool> HasUserVotedAsync(string pollCode, string voterToken)
+        {
+            var poll = await _context.Set<Poll>().FirstOrDefaultAsync(p => p.Code == pollCode);
+
+            if (poll == null) return false;
+
+            // Fixed: Changed v.VoterName to v.VoterToken to match your entity!
+            return await _context.Set<Vote>()
+                .AnyAsync(v => v.Question!.PollId == poll.Id && v.VoterToken == voterToken);
         }
     }
 }
