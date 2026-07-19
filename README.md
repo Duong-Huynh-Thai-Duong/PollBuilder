@@ -1,4 +1,4 @@
-# ThruSub (PollBuilder)
+# 🐇ThruSub (PollBuilder)
 
 ## Project Description
 ThruSub is a modern, responsive web application designed for creating, sharing, and analyzing custom polls. Built with a clean, Pinterest-inspired user interface, it provides a seamless experience for both poll creators and voters. 
