@@ -2,7 +2,7 @@ name: Build and Deploy to Render
 
 on:
   push:
-    branches: [ "SecondLife" ] # Triggers the pipeline whenever you push to this branch
+    branches: [ "master" ] # Triggers the pipeline whenever you push to this branch
 
 jobs:
   build-and-deploy:
