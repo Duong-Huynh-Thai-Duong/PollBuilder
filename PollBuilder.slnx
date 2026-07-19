@@ -4,4 +4,5 @@
   <Project Path="PollBuilder.Domain/PollBuilder.Domain.csproj" />
   <Project Path="PollBuilder.Infrastructure/PollBuilder.Infrastructure.csproj" />
   <Project Path="PollBuilder.MVC/PollBuilder.MVC.csproj" />
+  <Project Path="PollBuilder.UnitTests/PollBuilder.UnitTests.csproj" Id="651e2a18-9701-4371-9189-38b7227df16b" />
 </Solution>

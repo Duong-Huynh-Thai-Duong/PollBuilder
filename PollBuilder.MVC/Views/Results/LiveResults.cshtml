@@ -1,0 +1,87 @@
+﻿@model PollBuilder.MVC.ViewModels.PollResultsViewModel
+@{
+    ViewData["Title"] = "Live Results - " + Model.PollTitle;
+}
+
+<div class="container mt-5" style="max-width: 800px; padding-bottom: 100px;">
+
+    <!-- Header -->
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold text-red mb-3" style="font-family: 'Google Sans', serif;">@Model.PollTitle</h1>
+        <p class="text-muted fs-4">
+            Total Responses: <span class="badge bg-red rounded-pill px-3 py-2 fs-5 ms-2 shadow-sm">@Model.TotalPollVotes</span>
+        </p>
+    </div>
+
+    @foreach (var question in Model.Questions)
+    {
+        <div class="card shadow-sm mb-5 border-0" style="border-radius: 24px; border: 1px solid var(--border-light) !important;">
+            <div class="card-body p-4 p-md-5">
+                <h4 class="fw-bold mb-2 fs-3">@question.QuestionText</h4>
+                <p class="text-muted fw-bold mb-4">@question.TotalQuestionVotes votes</p>
+
+                @if (question.Type == PollBuilder.Domain.Enums.QuestionType.OpenText)
+                {
+                    <div class="mt-4">
+                        @if (question.TextResponses != null && question.TextResponses.Any())
+                        {
+                            <div class="d-flex flex-column gap-3">
+                                @foreach (var answer in question.TextResponses)
+                                {
+                                    <div class="p-4" style="background-color: #f9f9f9; border-radius: 16px; border: 1px solid var(--border-light);">
+                                        <div class="d-flex align-items-start">
+                                            <i class="fas fa-quote-left text-red mt-1 me-3 fs-5"></i>
+                                            <span class="fw-bold fs-5 text-dark" style="line-height: 1.5;">@answer</span>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-4" style="background-color: #f9f9f9; border-radius: 16px;">
+                                <i class="fas fa-comment-slash text-muted mb-2 fs-3"></i>
+                                <p class="text-muted fw-bold mb-0">No written responses yet.</p>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <!-- Standard Progress Bar Loop for non-text questions -->
+                    <div class="mt-4">
+                        @foreach (var option in question.Options)
+                        {
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between align-items-end mb-2">
+                                    <span class="fw-bold fs-5">@option.OptionText</span>
+                                    <span class="text-muted fw-bold">
+                                        @option.VotePercentage.ToString("0.0")% (@option.VoteCount)
+                                    </span>
+                                </div>
+
+                                <div class="progress shadow-sm" style="height: 24px; border-radius: 12px; background-color: var(--border-light);">
+                                    <!-- Use bg-red for the bar itself -->
+                                    <div class="progress-bar bg-red"
+                                         role="progressbar"
+                                         style="width: @option.VotePercentage%; border-radius: 12px;"
+                                         aria-valuenow="@option.VotePercentage"
+                                         aria-valuemin="0"
+                                         aria-valuemax="100">
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- Action Footer -->
+    <div class="text-center mt-5 pt-3 border-top">
+        <a asp-controller="Dashboard" asp-action="Index" class="btn-gray btn-lg fw-bold px-5 py-3 text-decoration-none" style="border-radius: 30px;">
+            Back to Dashboard
+        </a>
+    </div>
+</div>

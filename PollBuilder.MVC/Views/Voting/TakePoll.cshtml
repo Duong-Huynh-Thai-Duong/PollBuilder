@@ -1,0 +1,144 @@
+﻿@model PollBuilder.MVC.ViewModels.TakePollViewModel
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="container mt-5" style="max-width: 800px; padding-bottom: 100px;">
+    <!-- Poll Header -->
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold text-red mb-3" style="font-family: 'Google Sans', serif;">@Model.Title</h1>
+        <p class="text-muted fs-5">Created by <span class="fw-bold text-dark">@Model.CreatorName</span></p>
+    </div>
+
+    <!-- The Form that catches the votes and sends them to the SubmitVoteViewModel -->
+    <form asp-controller="Voting" asp-action="SubmitVote" method="post">
+        <!-- Hidden input to ensure the server knows WHICH poll we are voting on -->
+        <input type="hidden" name="PollId" value="@Model.PollId" />
+
+        <!-- Loop through every question and draw a card -->
+        @for (int i = 0; i < Model.Questions.Count; i++)
+        {
+            var question = Model.Questions[i];
+
+            <div class="card shadow-sm mb-4 border-0 poll-question-card">
+                <div class="card-body p-4 p-md-5">
+                    <h4 class="fw-bold mb-4 fs-3">@(i + 1). @question.Text</h4>
+
+                    @if (question.Type == 0 || question.Type == 1)
+                    {
+                        <!-- Multiple Choice & Yes/No -->
+                        <div class="d-flex flex-column gap-3">
+                            @foreach (var option in question.AvailableOptions)
+                            {
+                                <div>
+                                    <input class="custom-radio-input" type="radio" name="SelectedAnswers[@question.QuestionId]" id="opt_@(option.Key)" value="@option.Key" required>
+                                    <label class="custom-radio-label w-100 fs-5" for="opt_@(option.Key)">
+                                        @option.Value
+                                    </label>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else if (question.Type == 2)
+                    {
+                        <!-- Rating (1-5 Stars) -->
+                        <div class="d-flex gap-2 gap-md-4 justify-content-center my-4 flex-wrap">
+                            @foreach (var option in question.AvailableOptions)
+                            {
+                                <div class="text-center">
+                                    <input type="radio" class="rating-input" name="SelectedAnswers[@question.QuestionId]" id="rate_@(option.Key)" value="@option.Key" required autocomplete="off">
+                                    <label class="rating-label shadow-sm" for="rate_@(option.Key)">
+                                        @option.Value.Substring(0, 1) <!-- Grabs just the number -->
+                                    </label>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else if (question.Type == 3)
+                    {
+                        <!-- Open Text -->
+                        <div class="mb-3">
+                            <textarea class="form-control form-control-lg bg-light" name="SelectedAnswers[@question.QuestionId]" rows="4" placeholder="Type your response here..." style="border-radius: 16px; border: 2px solid var(--border-light);" required></textarea>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Submit Button -->
+        <div class="d-grid mt-5">
+            <button type="submit" class="btn-red btn-lg fw-bold py-3 fs-4 shadow-sm" style="border-radius: 30px;">
+                Submit My Vote
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+    /* Styling for the Poll Cards */
+    .poll-question-card {
+        background-color: var(--surface-white);
+        border-radius: 24px !important;
+        border: 1px solid var(--border-light) !important;
+    }
+
+    /* Hide standard radios and style labels as clickable blocks */
+    .custom-radio-input {
+        display: none;
+    }
+
+    .custom-radio-label {
+        display: block;
+        padding: 16px 24px;
+        border: 2px solid var(--border-light);
+        border-radius: 16px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-weight: 600;
+        background-color: var(--surface-white);
+    }
+
+        .custom-radio-label:hover {
+            background-color: #f9f9f9;
+            border-color: #d1d1d1;
+        }
+
+    /* Red highlight when selected */
+    .custom-radio-input:checked + .custom-radio-label {
+        border-color: var(--primary-red);
+        background-color: #fff0f2; /* Very soft red tint */
+        color: var(--primary-red);
+    }
+
+    /* Rating Circle Styles */
+    .rating-input {
+        display: none;
+    }
+
+    .rating-label {
+        width: 65px;
+        height: 65px;
+        line-height: 61px; /* Vertically centers text */
+        border: 2px solid var(--border-light);
+        border-radius: 50%;
+        font-size: 1.5rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background-color: var(--surface-white);
+        display: inline-block;
+    }
+
+        .rating-label:hover {
+            transform: translateY(-2px);
+            border-color: #d1d1d1;
+        }
+
+    /* Red circle when selected */
+    .rating-input:checked + .rating-label {
+        border-color: var(--primary-red);
+        background-color: var(--primary-red);
+        color: white;
+        transform: scale(1.05);
+    }
+</style>

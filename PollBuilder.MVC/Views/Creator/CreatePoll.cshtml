@@ -1,0 +1,274 @@
+﻿
+@model PollBuilder.MVC.ViewModels.PollBuilderViewModel
+@{
+    ViewData["Title"] = "Create a New Poll";
+}
+
+<div class="container py-5" style="max-width: 1000px;">
+    <form asp-controller="Creator" asp-action="CreatePoll" method="post" id="poll-builder-form">
+
+        <!-- Title Section -->
+        <div class="row mb-5">
+            <div class="col-lg-8">
+                <div class="card shadow-sm border-0 mb-4" style="border-radius: 16px;">
+                    <div class="card-body p-4">
+                        <label asp-for="FormTitle" class="form-label fw-bold text-dark mb-3 fs-5">
+                            <i class="fas fa-heading me-2 text-red"></i> Poll Title
+                        </label>
+                        <input asp-for="FormTitle"
+                               class="form-control form-control-lg border-2"
+                               placeholder="Untitled Request"
+                               style="border-color: #e0e0e0; padding: 12px 16px; font-size: 16px;" />
+                        <small class="text-muted d-block mt-2">
+                            <i class="fas fa-info-circle me-1"></i> This is what people will see when they open your poll
+                        </small>
+                        <span asp-validation-for="FormTitle" class="text-danger fw-bold d-block mt-2"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tips Box -->
+            <div class="col-lg-4">
+                <div class="card shadow-sm border-0" style="background-color: #f9f9f9; border-radius: 16px;">
+                    <div class="card-body p-4">
+                        <div class="text-center mb-3">
+                            <i class="fas fa-lightbulb text-warning" style="font-size: 2rem;"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark text-center">Tips</h5>
+                        <ul class="text-muted small mb-0" style="line-height: 1.8;">
+                            <li>Keep it short & simple</li>
+                            <li>Max 6 options per question</li>
+                            <li>Be specific & clear</li>
+                            <li>Add at least 1 question</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Questions Section -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <h3 class="fw-bold text-dark mb-0">
+                        <i class="fas fa-question-circle me-2 text-red"></i> Questions
+                    </h3>
+                    <span class="badge bg-red rounded-pill px-3 py-2 fs-6" id="question-count">0 questions</span>
+                </div>
+
+                <div id="questions-canvas" class="row g-4">
+                    <!-- Questions will be added here dynamically -->
+                </div>
+
+                <!-- Add Question Button -->
+                <button type="button" id="add-question-btn" class="btn btn-lg btn-outline-dark fw-bold w-100 py-3 mt-4 border-2" style="border-style: dashed; border-radius: 12px;">
+                    <i class="fas fa-plus me-2"></i> Add Question
+                </button>
+            </div>
+        </div>
+
+        <!-- Validation Summary -->
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger mt-3 fw-bold d-none" id="validation-summary"></div>
+
+        <!-- Action Buttons -->
+        <div class="row mt-5 pt-4 border-top">
+            <div class="col-md-6 mb-3 mb-md-0">
+                <a href="/dashboard" class="btn-gray w-100 text-center text-decoration-none py-3 fs-5">
+                    Cancel
+                </a>
+            </div>
+            <div class="col-md-6">
+                <button type="submit" class="btn-red w-100 py-3 shadow-sm fs-5 text-white" style="border-radius: 24px;">
+                    Publish Poll
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Updated Styles to use Red and Gray -->
+<style>
+    .question-card {
+        background: #ffffff;
+        border: 2px solid #e9ecef;
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+        /* Hover state is now Red instead of Blue */
+        .question-card:hover {
+            border-color: var(--primary-red);
+            box-shadow: 0 8px 25px rgba(230, 0, 35, 0.1);
+        }
+
+    .option-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 12px;
+        align-items: center;
+    }
+
+        .option-row input {
+            flex: 1;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            padding: 10px 14px;
+            transition: all 0.3s ease;
+        }
+
+        .option-row button {
+            border-radius: 8px;
+            padding: 8px 12px;
+            transition: all 0.2s ease;
+        }
+</style>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const canvas = document.getElementById('questions-canvas');
+            const addQuestionBtn = document.getElementById('add-question-btn');
+            const questionCount = document.getElementById('question-count');
+            let questionIndex = 0;
+
+            addQuestionBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                addQuestionCard();
+            });
+
+            function addQuestionCard() {
+                // Notice: Updated text-primary to text-red in the template below!
+                const questionHtml = `
+                    <div class="col-12 question-card-wrapper mb-4">
+                        <div class="question-card">
+                            <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+                                <h5 class="card-title text-red fw-bold mb-0">
+                                    <i class="fas fa-edit me-2"></i> Question ${questionIndex + 1}
+                                </h5>
+                                <button type="button" class="btn btn-sm btn-outline-danger remove-question-btn fw-bold">
+                                    <i class="fas fa-trash me-1"></i> Remove
+                                </button>
+                            </div>
+
+                            <div class="row mb-4">
+                                <div class="col-md-8">
+                                    <label class="form-label fw-bold text-dark">Question Text</label>
+                                    <input type="text" class="form-control form-control-lg question-text" placeholder="e.g., Which language do you prefer?" required />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold text-dark">Question Type</label>
+                                    <select class="form-select form-select-lg question-type-select">
+                                        <option value="MultipleChoice">Multiple Choice</option>
+                                        <option value="YesNo">Yes / No</option>
+                                        <option value="Rating">Rating (1-5 Stars)</option>
+                                        <option value="OpenText">Open Text Response</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="options-wrapper mb-2">
+                                <label class="form-label fw-bold text-dark d-flex align-items-center">
+                                    <i class="fas fa-list me-2 text-red"></i> Options (Max 6)
+                                </label>
+                                <div class="options-container p-3 rounded" style="background-color: #f9f9f9; border: 1px solid #e9ecef;"></div>
+                                <button type="button" class="btn btn-sm btn-outline-dark add-option-btn fw-bold mt-3">
+                                    <i class="fas fa-plus me-1"></i> Add Option
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                canvas.insertAdjacentHTML('beforeend', questionHtml);
+                questionIndex++;
+                const newQuestionCard = canvas.lastElementChild;
+                const optionsContainer = newQuestionCard.querySelector('.options-container');
+
+                addOption(optionsContainer);
+                addOption(optionsContainer);
+
+                updateQuestionCount();
+                reindex();
+            }
+
+            // Standard Logic remains the same (Type changing, Removing, Adding)
+            canvas.addEventListener('change', function (e) {
+                if (e.target.classList.contains('question-type-select')) {
+                    const type = e.target.value;
+                    const wrapper = e.target.closest('.question-card').querySelector('.options-wrapper');
+
+                    if (type === 'MultipleChoice') {
+                        wrapper.style.display = 'block';
+                    } else {
+                        wrapper.style.display = 'none';
+                    }
+                    reindex();
+                }
+            });
+
+            canvas.addEventListener('click', function (e) {
+                if (e.target.closest('.remove-question-btn')) {
+                    e.target.closest('.question-card-wrapper').remove();
+                    updateQuestionCount();
+                    reindex();
+                }
+                if (e.target.closest('.add-option-btn')) {
+                    const container = e.target.closest('.question-card').querySelector('.options-container');
+                    addOption(container);
+                    reindex();
+                }
+                if (e.target.closest('.remove-option-btn')) {
+                    const container = e.target.closest('.options-container');
+                    e.target.closest('.option-row').remove();
+                    updateAddOptionButton(container);
+                    reindex();
+                }
+            });
+
+            function addOption(container) {
+                if (container.querySelectorAll('.option-row').length >= 6) return;
+                const optionHtml = `
+                    <div class="option-row">
+                        <input type="text" class="form-control option-text" placeholder="Enter option text..." required />
+                        <button type="button" class="btn btn-outline-danger btn-sm remove-option-btn" title="Remove option">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>`;
+                container.insertAdjacentHTML('beforeend', optionHtml);
+                updateAddOptionButton(container);
+            }
+
+            function updateAddOptionButton(container) {
+                const count = container.querySelectorAll('.option-row').length;
+                const btn = container.parentElement.querySelector('.add-option-btn');
+                btn.style.display = count >= 6 ? 'none' : 'inline-block';
+            }
+
+            function updateQuestionCount() {
+                const count = document.querySelectorAll('.question-card-wrapper').length;
+                questionCount.textContent = count === 1 ? '1 question' : `${count} questions`;
+            }
+
+            function reindex() {
+                const questions = document.querySelectorAll('.question-card-wrapper');
+                questions.forEach((q, qIndex) => {
+                    q.querySelector('.question-text').name = `Questions[${qIndex}].QuestionText`;
+                    const typeSelect = q.querySelector('.question-type-select');
+                    typeSelect.name = `Questions[${qIndex}].QuestionType`;
+                    const isMultipleChoice = typeSelect.value === 'MultipleChoice';
+                    const options = q.querySelectorAll('.option-text');
+
+                    options.forEach((opt, oIndex) => {
+                        opt.name = `Questions[${qIndex}].Options[${oIndex}].OptionText`;
+                        opt.disabled = !isMultipleChoice;
+                    });
+                });
+            }
+
+            addQuestionCard();
+        });
+    </script>
+}

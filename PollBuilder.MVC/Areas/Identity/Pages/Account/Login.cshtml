@@ -1,0 +1,57 @@
+@page
+@model LoginModel
+@{
+    ViewData["Title"] = "Log in";
+}
+
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <!-- Logo inside the auth card -->
+        <div class="mb-4">
+            <img src="~/images/logo.png" alt="ThruSub Logo" style="height: 48px;" />
+        </div>
+
+        <h2 class="fw-bold mb-1 text-dark" style="font-family: 'Google Sans', serif;">Welcome to ThruSub</h2>
+        <p class="text-muted mb-4">Find new ideas to try</p>
+
+        <form id="account" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3 fw-bold" role="alert"></div>
+
+            <div class="form-floating mb-3 text-start">
+                <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+                <label asp-for="Input.Email" class="text-muted">Email</label>
+                <span asp-validation-for="Input.Email" class="text-danger small"></span>
+            </div>
+
+            <div class="form-floating mb-3 text-start">
+                <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password" />
+                <label asp-for="Input.Password" class="text-muted">Password</label>
+                <span asp-validation-for="Input.Password" class="text-danger small"></span>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-4 text-start">
+                <div class="form-check">
+                    <input class="form-check-input" asp-for="Input.RememberMe" />
+                    <label class="form-check-label text-muted fw-bold" asp-for="Input.RememberMe">
+                        @Html.DisplayNameFor(m => m.Input.RememberMe)
+                    </label>
+                </div>
+                <a id="forgot-password" asp-page="./ForgotPassword" class="text-decoration-none fw-bold" style="color: var(--text-stone); font-size: 0.9rem;">Forgot password?</a>
+            </div>
+
+            <div>
+                <button id="login-submit" type="submit" class="w-100 btn-red py-3 fs-5" style="border-radius: 30px;">Log in</button>
+            </div>
+        </form>
+
+        <div class="mt-4 pt-3 border-top">
+            <p class="mb-0 text-muted fw-bold">
+                Not on ThruSub yet? <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl" class="text-decoration-none text-red">Sign up</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

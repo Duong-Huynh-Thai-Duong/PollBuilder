@@ -3,45 +3,87 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - PollBuilder.MVC</title>
-    <script type="importmap"></script>
+    <title>@ViewData["Title"] - THRUSUB</title>
+
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/PollBuilder.MVC.styles.css" asp-append-version="true" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Domine:wght@400..700&family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">PollBuilder.MVC</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
+
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <!-- ========================================== -->
+        <!-- LOGGED IN: PINTEREST DASHBOARD LAYOUT      -->
+        <!-- ========================================== -->
+        <div class="app-layout">
+            <aside class="sidebar">
+                <a class="brand-logo" asp-area="" asp-controller="Home" asp-action="Index">
+                    <img src="~/images/logo.png" alt="ThruSub Rabbit Logo" />
+                    <span>ThruSub</span>
+                </a>
+
+                <nav class="sidebar-nav">
+                    <a class="sidebar-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")" asp-controller="Dashboard" asp-action="Index">
+                        <i class="fas fa-home fs-5"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a class="sidebar-link @(ViewContext.RouteData.Values["action"]?.ToString() == "CreatePoll" ? "active" : "")" asp-controller="Creator" asp-action="CreatePoll">
+                        <i class="fas fa-plus-circle fs-5"></i>
+                        <span>Create Poll</span>
+                    </a>
+                   
+                </nav>
+
+                <div class="sidebar-footer">
+                    <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post">
+                        <button type="submit" class="btn-gray w-100 text-start">
+                            <i class="fas fa-sign-out-alt me-2"></i> Log Out
+                        </button>
+                    </form>
+                </div>
+            </aside>
+
+            <main class="main-content">
+                @RenderBody()
+            </main>
+        </div>
+    }
+    else
+    {
+        <!-- ========================================== -->
+        <!-- LOGGED OUT: ORIGINAL LANDING PAGE LAYOUT   -->
+        <!-- ========================================== -->
+        <header class="main-header">
+            <div class="nav-container">
+                <!-- The Logo -->
+                <a class="nav-brand brand-logo m-0 p-0" asp-area="" asp-controller="Home" asp-action="Index" style="margin-bottom: 0 !important;">
+                    <img src="~/images/logo.png" alt="Posu Rabbit Logo" style="height: 32px;" />
+                    <span>ThruSub</span>
+                </a>
+
+                <!-- The Smart Navigation -->
+                <div class="nav-right">
+                    <a class="nav-link-ghost" asp-area="Identity" asp-page="/Account/Login">Log In</a>
+                    <a class="nav-btn-small" asp-area="Identity" asp-page="/Account/Register">Sign Up</a>
                 </div>
             </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
+        </header>
+
+        <main role="main" class="main-container">
             @RenderBody()
         </main>
-    </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - PollBuilder.MVC - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
+        <footer>
+            <p class="text-center text-muted">&copy; 2026 - Built by Mun & Yun</p>
+        </footer>
+    }
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

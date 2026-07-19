@@ -1,0 +1,203 @@
+﻿@model PollBuilder.MVC.ViewModels.DashboardViewModel
+
+@{
+    ViewData["Title"] = "My Dashboard";
+}
+
+<div class="container mt-5">
+    <!-- Welcome Header -->
+    <div class="row mb-5 align-items-center">
+        <div class="col-md-8">
+            <h1 class="display-4 fw-bold">
+                Welcome back,<br />
+                <!-- Changed from text-primary to text-red -->
+                <span class="text-red">@Model.CreatorName</span>! 👋
+            </h1>
+            <p class="lead text-muted mt-2">Manage your polls, surveys, and see how people are responding</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <!-- Changed from btn-primary to our custom btn-red -->
+            <a href="/creator/create-poll" class="btn-red btn-lg d-inline-block text-decoration-none shadow-sm">
+                <i class="fas fa-plus me-2"></i> Create New Poll
+            </a>
+        </div>
+    </div>
+
+    <!-- Active Polls Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="d-flex align-items-center mb-4">
+                <h2 class="mb-0"> Current Polls</h2>
+                
+            </div>
+
+            @if (Model.ActivePolls.Any())
+            {
+                <div class="row">
+                    @foreach (var poll in Model.ActivePolls)
+                    {
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card h-100 shadow-sm hover-shadow-md">
+                                <!-- Poll Card Header -->
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <div>
+                                            <h5 class="card-title mb-2">@poll.Title</h5>
+                                            <small class="text-muted">
+                                                <i class="far fa-calendar"></i>
+                                                @poll.CreatedAt.ToString("MMM dd, yyyy")
+                                            </small>
+                                        </div>
+                                        <span class="badge @(poll.Status == "Ended" ? "tag-ended" : "tag-active")">@poll.Status</span>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <small class="fw-bold">Responses</small>
+                                            <small class="text-muted">@poll.TotalResponses votes</small>
+                                        </div>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar" role="progressbar" 
+                                                 style="width: @(poll.TotalResponses > 0 ? ((poll.TotalResponses % 100) + 1) : 5)%">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Poll Card Footer -->
+                                <div class="card-footer bg-light d-flex gap-2">
+                                   
+                                    <a href="/dashboard/poll/@poll.PollId"
+                                       class="btn btn-sm btn-outline-info"
+                                       title="View poll statistics">
+                                        <i class="fas fa-eye"></i> Results
+                                    </a>
+                                    <br />
+
+                                    <!-- Status Specific Buttons (Share + Close) -->
+                                    @if (poll.Status != "Ended")
+                                    {
+                                        <button type="button" class="btn btn-sm btn-outline-secondary"
+                                                data-bs-toggle="tooltip" title="Copy poll link to clipboard"
+                                                onclick="copyToClipboard('@Context.Request.Scheme://@Context.Request.Host/voting/take-poll/@poll.PollId')">
+                                            <i class="fas fa-share"></i> Share
+                                        </button>
+
+                                        <form asp-controller="Dashboard" asp-action="ClosePoll" asp-route-code="@poll.PollId" method="post" class="m-0">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Close Poll" onclick="return confirm('Are you sure you want to close this poll? Voters will no longer be able to submit answers.');">
+                                                <i class="fas fa-lock"></i> Close
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger d-flex align-items-center px-3"><i class="fas fa-lock me-1"></i> Poll Ended</span>
+                                    }
+
+                                    <!-- Always allow Delete -->
+                                    <form asp-controller="Dashboard" asp-action="DeletePoll" asp-route-code="@poll.PollId" method="post" class="m-0">
+                                        <button type="submit" class="btn btn-sm btn-outline-dark" title="Delete Poll completely"
+                                                onclick="return confirm('🚨 WARNING: Are you sure you want to permanently delete this poll? \n\nIf you shared the link, it will now be broken. All votes will be lost.');">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info" role="alert">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>No active polls yet!</strong> Create your first poll to get started.
+                    <a href="/creator/create-poll" class="btn btn-sm btn-info ms-2">Create Poll</a>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!--  Polls STATUS TAG -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="d-flex align-items-center mb-4">
+                <h2 class="mb-0"> OVERALL STATUS </h2>
+               
+            </div>
+             </div>
+              </div>
+
+          
+
+    <!-- Quick Stats Section -->
+    <div class="row">
+        <div class="col-md-3 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <!-- Only count non-ended -->
+                    <h3 class="display-6 text-primary">@Model.ActivePolls.Count(p => p.Status != "Ended")</h3>
+                    <p class="card-text text-muted">Active Polls</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="display-6 text-info">@Model.ActivePolls.Sum(p => p.TotalResponses)</h3>
+                    <p class="card-text text-muted">Total Responses</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <!-- Total Polls = All Published Polls (Active + Ended) -->
+                    <h3 class="display-6 text-success">@Model.ActivePolls.Count</h3>
+                    <p class="card-text text-muted">Total Published Polls</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Styles for Cards -->
+<style>
+    .hover-shadow-md:hover {
+        box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175) !important;
+        transform: translateY(-2px);
+        transition: all 0.3s ease;
+    }
+
+    .card {
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0, 0, 0, 0.125);
+    }
+
+    .progress {
+        background-color: #e9ecef;
+    }
+
+    .card-footer {
+        border-top: 1px solid rgba(0, 0, 0, 0.125);
+    }
+</style>
+
+<!-- Script for Copy to Clipboard -->
+<script>
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Poll link copied to clipboard! Share it with anyone.');
+        }).catch(() => {
+            alert('Failed to copy link');
+        });
+    }
+
+    // Enable tooltips
+    document.addEventListener('DOMContentLoaded', function () {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
